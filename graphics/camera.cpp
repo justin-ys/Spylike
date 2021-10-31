@@ -1,0 +1,21 @@
+#include "camera.h"
+#include "rendering.h"
+#include "screen.h"
+
+Camera::Camera(TerminalScreen& screen, LevelMap& map, int width, int height, std::vector<RenderLayer> layers) : map{map}, width{width}, height{height}, TextRenderManager(screen, layers) {
+	origin = Coordinate(0,0);
+}
+
+void Camera::setOrigin(Coordinate pos) {origin = pos;}
+
+Coordinate Camera::getOrigin() {return origin;}
+
+void Camera::draw(Coordinate coord, char c, std::string layerName) {
+	Coordinate cameraMapped(coord.x - origin.x, coord.y - origin.y);
+	if ((cameraMapped.x > 0) && (cameraMapped.y > 0)) {
+		if ((cameraMapped.x < width) && (cameraMapped.y < width)) {
+			TextRenderManager::draw(cameraMapped, c, layerName);
+		}
+	}
+}
+	
