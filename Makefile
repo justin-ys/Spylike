@@ -1,7 +1,7 @@
 CXX=g++
 CPPFLAGS=-Iinclude
 LDLIBS=-lncurses
-OBJS=graphics/*.cpp logging/*.cpp models/*.cpp level/*.cpp main.cpp
+OBJS=graphics/*.cpp logging/*.cpp models/*.cpp level/*.cpp game/*.cpp main.cpp
 VER=vA1
 
 build: $(OBJS)

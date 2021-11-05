@@ -1,1 +1,3 @@
-void run();
+namespace Game {
+	void run();
+}
