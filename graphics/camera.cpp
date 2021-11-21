@@ -2,7 +2,7 @@
 #include "rendering.h"
 #include "screen.h"
 
-Camera::Camera(TerminalScreen& screen, LevelMap& map, int width, int height, std::vector<RenderLayer> layers) : map{map}, width{width}, height{height}, TextRenderManager(screen, layers) {
+Camera::Camera(TerminalScreen& screen, int width, int height, std::vector<RenderLayer> layers) : width{width}, height{height}, TextRenderManager(screen, layers) {
 	origin = Coordinate(0,0);
 }
 

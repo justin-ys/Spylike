@@ -7,10 +7,13 @@
 
 extern SpylikeLogger LOGGER;
 
+void TileEntity::registerWorld(std::shared_ptr<LevelMap> levelMap) {
+	world = levelMap;
+}
+
 std::vector<std::shared_ptr<TileEntity>> Tile::getEntities() {
 	return entities;
 }
-
 	
 void Tile::addEntity(std::shared_ptr<TileEntity> ent) {
 	ent->tile = this;
@@ -96,12 +99,7 @@ void LevelMap::updateTile(Coordinate coord) {
 	std::shared_ptr<Tile> tile = getTile(coord);
 	if (tile != nullptr) {
 		for (auto ent : tile->getEntities()) {
-			if (!ent->isAlive) {
-				tileMap[getTileIndex(coord)] = nullptr;
-			}
-			else {
-				ent->update();
-			}
+			ent->update();
 		}
 	}
 }

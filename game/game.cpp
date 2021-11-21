@@ -4,6 +4,7 @@
 #include "screen.h"
 #include "sprites.h"
 #include "levelmap.h"
+#include "event.h"
 using namespace std;
 #include <vector>
 #include <string>
@@ -13,8 +14,8 @@ using namespace std;
 class epicEntity : public TileEntity {
 	Sprite sprite;
 	public:
-		epicEntity(int ID, LevelMap& world, Sprite sprite) : TileEntity(ID, world), sprite(sprite) {}
-		void update() {
+		epicEntity(Sprite sprite) : sprite(sprite) {}
+		void on_update() {
 			sprite.nextFrame();
 		}
 		void draw(GeometryRenderer& painter) {
@@ -42,11 +43,16 @@ namespace Game {
 		vector<RenderLayer> layers = {RenderLayer("pog", 1)};
 		NcursesTerminalScreen screen(60, 20);
 		
-		LevelMap map(60, 20);
-		Camera camera(screen, map, 60, 20, layers);
+		std::shared_ptr<LevelMap> map(new LevelMap(60, 20));
+		Camera camera(screen, 60, 20, layers);
 		GeometryRenderer renderer(camera);
-		std::shared_ptr<epicEntity> ent = std::make_shared<epicEntity>(17, map, coolSprite);
-		map.putEntity(ent, Coordinate(5,5));
+		
+		std::shared_ptr<EventManager> manager(new EventManager());
+		std::shared_ptr<epicEntity> ent = std::make_shared<epicEntity>(coolSprite);
+		ent->setID(17);
+		ent->registerWorld(map);
+		ent->registerEventManager(manager);
+		map->putEntity(ent, Coordinate(5,5));
 		//for (int i=0; i<4; i++) {
 		while (true) {
 			//camera.setOrigin(Coordinate(camera.getOrigin().x + 1, camera.getOrigin().y + 1));
@@ -54,9 +60,9 @@ namespace Game {
 			char c = screen.getInput();
 			for (int y=0; y<20; y++) {
 				for (int x=0; x<60; x++) {
-					map.updateTile(Coordinate(x, y));
+					map->updateTile(Coordinate(x, y));
 					if (c != '\0') {
-						map.drawTile(Coordinate(x, y), renderer);
+						map->drawTile(Coordinate(x, y), renderer);
 					}
 				}
 			}

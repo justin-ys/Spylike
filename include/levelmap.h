@@ -12,11 +12,11 @@ class TileEntity;
 class LevelMap;
 
 class TileEntity : public SpritedObject {
-	LevelMap& world;
+	std::shared_ptr<LevelMap> world;
 	public:
-		bool isAlive;
+		bool isAlive = true;
 		const Tile* tile;
-		TileEntity(int entityID, LevelMap& world) : SpritedObject(entityID), world(world), isAlive(true) {}
+		void registerWorld(std::shared_ptr<LevelMap> levelMap);
 };
 
 class Tile {

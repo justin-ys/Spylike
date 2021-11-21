@@ -6,13 +6,13 @@
 #include "screen.h"
 #include <vector>
 
+
 class Camera : public TextRenderManager {
 	Coordinate origin;
-	LevelMap& map;
 	int width;
 	int height;
 	public:
-		Camera(TerminalScreen& screen, LevelMap& map, int width, int height, std::vector<RenderLayer> layers);
+		Camera(TerminalScreen& screen, int width, int height, std::vector<RenderLayer> layers);
 		void setOrigin(Coordinate pos);
 		Coordinate getOrigin();
 		virtual void draw(Coordinate coord, char c, std::string layerName);
