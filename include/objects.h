@@ -11,8 +11,8 @@ class Object : public EventHandler {
 	std::shared_ptr<EventManager> eventManager;
 	virtual void on_event(Event e) = 0;
 	virtual void on_update() = 0;
+	int ID = -1;
 	public:
-		int ID = -1;
 		void update() {
 			assert(eventManager);
 			assert(ID != -1);
@@ -23,6 +23,7 @@ class Object : public EventHandler {
 			on_event(e);
 		};
 		void setID(int objID);
+		int getID();
 		void registerEventManager(std::shared_ptr<EventManager> manager);
 };
 

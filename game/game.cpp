@@ -5,11 +5,15 @@
 #include "sprites.h"
 #include "levelmap.h"
 #include "event.h"
+#include "logger.h"
 using namespace std;
 #include <vector>
 #include <string>
 #include <memory>
 #include <unistd.h>
+#include <string>
+
+extern SpylikeLogger LOGGER;
 
 class epicEntity : public TileEntity {
 	Sprite sprite;
@@ -43,17 +47,17 @@ namespace Game {
 		vector<RenderLayer> layers = {RenderLayer("pog", 1)};
 		NcursesTerminalScreen screen(60, 20);
 		
-		std::shared_ptr<LevelMap> map(new LevelMap(60, 20));
 		Camera camera(screen, 60, 20, layers);
 		GeometryRenderer renderer(camera);
 		
 		std::shared_ptr<EventManager> manager(new EventManager());
 		std::shared_ptr<epicEntity> ent = std::make_shared<epicEntity>(coolSprite);
-		ent->setID(17);
-		ent->registerWorld(map);
-		ent->registerEventManager(manager);
-		map->putEntity(ent, Coordinate(5,5));
+		
+		IDBlock idAllocation = {0, 1024};
+		std::shared_ptr<LevelMap> map = std::make_shared<LevelMap>(60, 20, manager, idAllocation);
+		map->registerEntity(ent, Coordinate(5,5));
 		//for (int i=0; i<4; i++) {
+		bool flag = true;
 		while (true) {
 			//camera.setOrigin(Coordinate(camera.getOrigin().x + 1, camera.getOrigin().y + 1));
 			camera.clearScreen();
@@ -63,6 +67,12 @@ namespace Game {
 					map->updateTile(Coordinate(x, y));
 					if (c != '\0') {
 						map->drawTile(Coordinate(x, y), renderer);
+						if (c == 'z' && flag) {
+							Coordinate entPos = ent->tile->pos;
+							map->moveEntity(ent->getID(), Coordinate(entPos.x+5, entPos.y+4));
+							LOGGER.log(std::to_string(entPos.x), DEBUG);
+							flag = false;
+						}
 					}
 				}
 			}

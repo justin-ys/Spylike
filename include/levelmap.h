@@ -11,6 +11,11 @@ class Tile;
 class TileEntity;
 class LevelMap;
 
+struct IDBlock {
+	int startID;
+	int endID;
+};
+
 class TileEntity : public SpritedObject {
 	std::shared_ptr<LevelMap> world;
 	public:
@@ -30,21 +35,29 @@ class Tile {
 };
 
 
-class LevelMap {
+class LevelMap : public std::enable_shared_from_this<LevelMap> {
 	int width;
 	int height;
 	std::vector<std::shared_ptr<Tile>> tileMap;
 	int getTileIndex(Coordinate coord);
+	std::map<int, Coordinate> trackedEntities; //entityID: location mapping
+	std::shared_ptr<EventManager> manager;
+	IDBlock idRange; //range of IDs the manager is allowed to assign to
+	std::vector<int> freeIDs;
+	int currentID;
+	int getNextID();
 	public:
-		LevelMap(int width, int height);
+		LevelMap(int width, int height, std::shared_ptr<EventManager> eventManager, IDBlock idRange);
 		std::shared_ptr<Tile> getTile(Coordinate coord);
 		void putEntity(std::shared_ptr<TileEntity> ent, Coordinate coord);
 		void destroyTile(Coordinate coord);
-		std::shared_ptr<TileEntity> removeEntity(Coordinate origin, int entityID, Coordinate pos); //returns pointer to entity that was removed if it exists
-		void moveEntity(Coordinate origin, int entityID, Coordinate pos);
+		std::shared_ptr<TileEntity> removeEntity(int entityID); //returns pointer to entity that was removed if it exists
+		void moveEntity(int entityID, Coordinate pos);
 		void updateTile(Coordinate coord);
 		void drawTile(Coordinate coord, GeometryRenderer& camera);
 		bool isInMap(Coordinate coord); //convienience function
+		void registerEntity(std::shared_ptr<TileEntity> ent, Coordinate pos);
+		Coordinate getEntityPos(int entityID);
 };
 
 

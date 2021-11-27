@@ -4,6 +4,7 @@
 #include <vector>
 #include <stdexcept>
 #include <memory>
+#include <map>
 
 extern SpylikeLogger LOGGER;
 
@@ -23,7 +24,7 @@ void Tile::addEntity(std::shared_ptr<TileEntity> ent) {
 void Tile::removeEntity(int entityID) {
 	int idxToRemove = -1;
 	for (int i=0; i<entities.size(); i++) {
-		if (entities[i]->ID == entityID) {
+		if (entities[i]->getID() == entityID) {
 			entities[i]->tile = nullptr;
 			idxToRemove = i;
 		}
@@ -32,11 +33,13 @@ void Tile::removeEntity(int entityID) {
 		entities.erase(entities.begin() + idxToRemove);
 	}
 }
-			
 
-LevelMap::LevelMap(int width, int height) : width{width}, height{height} {
+LevelMap::LevelMap(int width, int height, std::shared_ptr<EventManager> eventManager, IDBlock idRange) : width{width}, height{height}, manager{eventManager}, idRange{idRange} {
 	tileMap = std::vector<std::shared_ptr<Tile>>(width*height);
 	std::fill(tileMap.begin(), tileMap.end(), std::shared_ptr<Tile>(nullptr));
+	currentID = idRange.startID;
+	trackedEntities = std::map<int, Coordinate>();
+	freeIDs = std::vector<int>();
 }
 
 int LevelMap::getTileIndex(Coordinate coord) {
@@ -66,32 +69,38 @@ void LevelMap::destroyTile(Coordinate coord) {
 	tileMap[getTileIndex(coord)] = std::shared_ptr<Tile>(nullptr);
 }
 
-std::shared_ptr<TileEntity> LevelMap::removeEntity(Coordinate origin, int entityID, Coordinate pos) {
-	std::shared_ptr<Tile> currentTile = getTile(origin);
+std::shared_ptr<TileEntity> LevelMap::removeEntity(int entityID) {
+	if (trackedEntities.find(entityID) == trackedEntities.end()) {
+		return nullptr;
+	}
+	Coordinate pos = trackedEntities[entityID];
+	std::shared_ptr<Tile> currentTile = getTile(pos);
 	std::shared_ptr<TileEntity> targetEntity = nullptr;
 	if (currentTile != nullptr) {
 		for (auto entity : currentTile->getEntities()) {
-			if (entity->ID == entityID) {
+			if (entity->getID() == entityID) {
 				targetEntity = entity;
 				break;
 			}
 		}
 	}
 	if (targetEntity) {
-		currentTile->removeEntity(targetEntity->ID);
+		currentTile->removeEntity(targetEntity->getID());
 		if (currentTile->getEntities().size() == 0) {
-			destroyTile(origin);
+			destroyTile(pos);
 		}
+		trackedEntities.erase(targetEntity->getID());
 		return targetEntity;
 	}
 	return nullptr;
 }
 
-void LevelMap::moveEntity(Coordinate origin, int entityID, Coordinate pos) {
-	std::shared_ptr<TileEntity> ent = removeEntity(origin, entityID, pos);
+void LevelMap::moveEntity(int entityID, Coordinate pos) {
+	std::shared_ptr<TileEntity> ent = removeEntity(entityID);
 	if (ent) {
 		putEntity(ent, pos);
 	}
+	trackedEntities[entityID] = pos;
 }
 
 
@@ -116,3 +125,29 @@ void LevelMap::drawTile(Coordinate coord, GeometryRenderer& camera) {
 bool LevelMap::isInMap(Coordinate coord) {
 	return ((coord.x > 0) && (coord.x < width) && (coord.y > 0) && (coord.y < height));
 }
+
+int LevelMap::getNextID() {
+	if (currentID <= idRange.endID) {
+		currentID += 1;
+		return (currentID - 1);
+	}
+	else {
+		if (freeIDs.size() > 0) {
+			int chosenID = freeIDs.back();
+			freeIDs.pop_back();
+			return chosenID;
+		}
+		else {
+			throw std::runtime_error("World has run out of its entityID allocation");
+		}
+	}
+}
+		
+void LevelMap::registerEntity(std::shared_ptr<TileEntity> ent, Coordinate pos) {
+	ent->registerWorld(shared_from_this());
+	ent->registerEventManager(manager);
+	ent->setID(getNextID());
+	trackedEntities.insert({ent->getID(), pos});
+	putEntity(ent, pos);
+}
+	
