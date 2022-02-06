@@ -1,4 +1,5 @@
 #include "rendering.h"
+#include "logger.h"
 #include <algorithm>
 #include <cassert>
 #include <string>
@@ -6,6 +7,8 @@
 #include <iostream>
 #include <stdlib.h>
 #include <algorithm>
+
+extern SpylikeLogger LOGGER;
 
 TextRenderManager::TextRenderManager(TerminalScreen& scr, std::vector<RenderLayer> layers) : screen(scr) {
     std::vector<RenderLayer> layers_sorted = layers;
@@ -81,20 +84,43 @@ void GeometryRenderer::drawString(Coordinate pos, std::string str, std::string l
 		
 
 void GeometryRenderer::drawLine(Coordinate p1, Coordinate p2, char c, std::string layerName) {
-	int deltaX = (p2.x - p1.x);
-	int deltaY = (p2.y - p1.y);
-	int slopeX = deltaX/std::__gcd(deltaX, deltaY);
-	int slopeY = deltaY/std::__gcd(deltaX, deltaY);
+	int deltaX = p2.x - p1.x;
+	int deltaY = p2.y - p1.y;
+	int slopeY;
+	int signX;
+	int signY = deltaY/abs(deltaY);
+	if (deltaX == 0) {
+		slopeY = 10*deltaY;
+		signX = 1;
+	}
+	else {
+		slopeY = abs((10*deltaY)/deltaX)*(signY);
+		signX = deltaX/abs(deltaX);
+	}
 	Coordinate currentPos = p1;
-	while (true) {
+	int yCounter = 0;
+	for (int x=0; abs(x)<=abs(deltaX); x+=signX) {
 		manager.draw(currentPos, c, layerName);
-		currentPos.x += slopeX;
-		currentPos.y += slopeY;
-		if ((abs(currentPos.x - p1.x) > abs(deltaX)) || (abs(currentPos.y) - abs(p1.y)) > abs(deltaY)) {
-			break;
+		yCounter += slopeY;
+		int lastY = currentPos.y;
+		currentPos.y = p1.y + ((yCounter + 5)/10);
+		int lastDelta = abs(currentPos.y - lastY);
+		if (lastDelta > 1) {
+			for (int y=1; y<lastDelta; y++) {
+				manager.draw(Coordinate(currentPos.x, currentPos.y-(y*signY)), c, layerName);
+			}
 		}
+		currentPos.x += signX;
 	}
 	manager.renderToScreen();
 }
 
-
+void GeometryRenderer::drawBox(Coordinate p1, Coordinate p2, std::string layerName) {
+	Coordinate p3 = Coordinate(p1.x, p2.y);
+	Coordinate p4 = Coordinate(p2.x, p1.y);
+	
+	drawLine(p1, p3, '|', layerName);
+	drawLine(p1, p4, '-', layerName);
+	drawLine(p2, p3, '-', layerName);
+	drawLine(p2, p4, '|', layerName);
+}
