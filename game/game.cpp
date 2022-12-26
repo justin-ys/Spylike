@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cmath>
 #include "rendering.h"
 #include "camera.h"
 #include "screen.h"
@@ -6,6 +7,7 @@
 #include "levelmap.h"
 #include "event.h"
 #include "logger.h"
+#include "menus.h"
 using namespace std;
 #include <vector>
 #include <string>
@@ -28,6 +30,7 @@ class epicEntity : public TileEntity {
 		
 		void on_event(Event e) {}
 };
+		
 
 namespace Game {
 	void run() {
@@ -44,7 +47,7 @@ namespace Game {
 		vector<SpriteFrame> frames = {f1, f2, f3, f4};
 		Sprite coolSprite(frames, 4);
 		
-		vector<RenderLayer> layers = {RenderLayer("pog", 1)};
+		vector<RenderLayer> layers = {RenderLayer("pog", 1), RenderLayer("UI", 2)};
 		NcursesTerminalScreen screen(60, 20);
 		
 		Camera camera(screen, 60, 20, layers);
@@ -53,31 +56,29 @@ namespace Game {
 		std::shared_ptr<EventManager> manager(new EventManager());
 		std::shared_ptr<epicEntity> ent = std::make_shared<epicEntity>(coolSprite);
 		
+		std::shared_ptr<MenuButton> button = std::make_shared<MenuButton>(10, 3, "lol", "pog");
+		
 		IDBlock idAllocation = {0, 1024};
 		std::shared_ptr<LevelMap> map = std::make_shared<LevelMap>(60, 20, manager, idAllocation);
-		map->registerEntity(ent, Coordinate(5,5));
+		//map->registerEntity(ent, Coordinate(5,5));
+		map->registerEntity(button, Coordinate(1,1));
+		
 		//for (int i=0; i<4; i++) {
 		bool flag = true;
 		while (true) {
 			//camera.setOrigin(Coordinate(camera.getOrigin().x + 1, camera.getOrigin().y + 1));
-			camera.clearScreen();
 			char c = screen.getInput();
+			renderer.drawBox(Coordinate(0, 0), Coordinate(8,8), "UI");
 			for (int y=0; y<20; y++) {
 				for (int x=0; x<60; x++) {
-					map->updateTile(Coordinate(x, y));
-					if (c != '\0') {
-						map->drawTile(Coordinate(x, y), renderer);
-						if (c == 'z' && flag) {
-							Coordinate entPos = ent->tile->pos;
-							map->moveEntity(ent->getID(), Coordinate(entPos.x+5, entPos.y+4));
-							LOGGER.log(std::to_string(entPos.x), DEBUG);
-							flag = false;
-						}
-					}
+					//map->updateTile(Coordinate(x, y));
+					//map->drawTile(Coordinate(x, y), renderer);
 				}
 			}
-			usleep(100000);
+			usleep(500000);
+			camera.clearScreen();
 		}
+
 		screen.end();
 	}
 }

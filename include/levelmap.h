@@ -17,10 +17,12 @@ struct IDBlock {
 };
 
 class TileEntity : public SpritedObject {
-	std::shared_ptr<LevelMap> world;
+	protected:
+		std::shared_ptr<LevelMap> world;
 	public:
+		const Tile* tile = nullptr;
+		void setTile(Tile* tileObj);
 		bool isAlive = true;
-		const Tile* tile;
 		void registerWorld(std::shared_ptr<LevelMap> levelMap);
 };
 
@@ -36,8 +38,6 @@ class Tile {
 
 
 class LevelMap : public std::enable_shared_from_this<LevelMap> {
-	int width;
-	int height;
 	std::vector<std::shared_ptr<Tile>> tileMap;
 	int getTileIndex(Coordinate coord);
 	std::map<int, Coordinate> trackedEntities; //entityID: location mapping
@@ -47,6 +47,8 @@ class LevelMap : public std::enable_shared_from_this<LevelMap> {
 	int currentID;
 	int getNextID();
 	public:
+		const int width;
+		const int height;
 		LevelMap(int width, int height, std::shared_ptr<EventManager> eventManager, IDBlock idRange);
 		std::shared_ptr<Tile> getTile(Coordinate coord);
 		void putEntity(std::shared_ptr<TileEntity> ent, Coordinate coord);

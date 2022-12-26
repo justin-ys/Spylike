@@ -1,11 +1,12 @@
 #include "entity.h"
 #include "event.h"
+#include <memory>
 
-void ManagedEntity::update() { parent.update(); }
+//TODO: Still not entirely sure how to implement this and how it will be used
+
+void ManagedEntity::on_update() { parent.update(); }
 void ManagedEntity::draw(GeometryRenderer& painter) { parent.draw(painter); }
 void ManagedEntity::on_event(Event e) { parent.event(e); }
 
-void ManagerEntity::createChild(Coordinate pos) {
-	//TODO: we need an object manager to generate IDs from, so this is on hold for now
-}
+void ManagerEntity::createChild(Coordinate pos) { }
 

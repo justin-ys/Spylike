@@ -12,12 +12,16 @@ void TileEntity::registerWorld(std::shared_ptr<LevelMap> levelMap) {
 	world = levelMap;
 }
 
+void TileEntity::setTile(Tile* tileObj) {
+	tile = tileObj;
+}
+	
 std::vector<std::shared_ptr<TileEntity>> Tile::getEntities() {
 	return entities;
 }
 	
 void Tile::addEntity(std::shared_ptr<TileEntity> ent) {
-	ent->tile = this;
+	ent->setTile(this);
 	entities.push_back(ent);
 }
 
@@ -25,7 +29,7 @@ void Tile::removeEntity(int entityID) {
 	int idxToRemove = -1;
 	for (int i=0; i<entities.size(); i++) {
 		if (entities[i]->getID() == entityID) {
-			entities[i]->tile = nullptr;
+			entities[i]->setTile(nullptr);
 			idxToRemove = i;
 		}
 	}
@@ -123,7 +127,7 @@ void LevelMap::drawTile(Coordinate coord, GeometryRenderer& camera) {
 }
 
 bool LevelMap::isInMap(Coordinate coord) {
-	return ((coord.x > 0) && (coord.x < width) && (coord.y > 0) && (coord.y < height));
+	return (((coord.x >= 0) && (coord.x < width)) && ((coord.y >= 0) && (coord.y < height)));
 }
 
 int LevelMap::getNextID() {

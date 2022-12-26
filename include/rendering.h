@@ -18,23 +18,15 @@ struct RenderLayer {
     int priority;
     RenderLayer(std::string name, int priority): name(name), priority(priority) {}
 };
-
+  
 struct coordCompare : public std::binary_function<std::string, std::string, bool> {
+	//TODO: literally stolen LMAO
     bool operator()(const Coordinate& c1, const Coordinate& c2) const {
-        if (c1.y < c2.y) {
-            return false;
-        }
-        else if (c1.y > c2.y) {
-            return true;
-        }
-        else if (c1.x < c2.x) {
-            return false;
-        }
-        else {
-            return true;
-        }
-    }
+    	return (c1.x < c2.x) || ((c1.x == c2.x) && (c1.y < c2.y));
+	}	
 };
+	
+
 
 class TextRenderManager {
     TerminalScreen& screen;
@@ -50,6 +42,7 @@ class TextRenderManager {
         void clearScreen();
         int getScreenWidth();
         int getScreenHeight();
+        std::string getSnapshot();
         
 };
 
@@ -59,6 +52,7 @@ class GeometryRenderer {
 		GeometryRenderer(TextRenderManager& renderManager);
 		void drawString(Coordinate pos, std::string str, std::string layerName);
 		void drawLine(Coordinate p1, Coordinate p2, char c, std::string layerName);
+		void drawBox(Coordinate p1, Coordinate p2, std::string layerName);
 };
 
 #endif

@@ -25,6 +25,14 @@ void NcursesTerminalScreen::write(int x, int y, char c) {
 	wrefresh(win);
 }
 
+void NcursesTerminalScreen::write(int x, int y, std::string s) {
+	assert(x <= width);
+    assert(y <= height);
+    const char* charStr = s.c_str();
+    mvwprintw(win, y, x, charStr);
+	wrefresh(win);
+}
+
 char NcursesTerminalScreen::getInput() {
 	int ch = wgetch(win);
 	if (ch == ERR) {

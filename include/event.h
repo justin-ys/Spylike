@@ -9,6 +9,7 @@
 struct Event {
 	std::string type;
 	std::string ID;
+	Event(std::string type, std::string ID): type(type), ID(ID) {}
 };
 
 class EventHandler {

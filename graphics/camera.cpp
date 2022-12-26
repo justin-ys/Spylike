@@ -12,8 +12,8 @@ Coordinate Camera::getOrigin() {return origin;}
 
 void Camera::draw(Coordinate coord, char c, std::string layerName) {
 	Coordinate cameraMapped(coord.x - origin.x, coord.y - origin.y);
-	if ((cameraMapped.x > 0) && (cameraMapped.y > 0)) {
-		if ((cameraMapped.x < width) && (cameraMapped.y < width)) {
+	if ((cameraMapped.x >= 0) && (cameraMapped.y >= 0)) {
+		if ((cameraMapped.x <= width) && (cameraMapped.y <= height)) {
 			TextRenderManager::draw(cameraMapped, c, layerName);
 		}
 	}
