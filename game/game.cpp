@@ -56,23 +56,22 @@ namespace Game {
 		std::shared_ptr<EventManager> manager(new EventManager());
 		std::shared_ptr<epicEntity> ent = std::make_shared<epicEntity>(coolSprite);
 		
-		std::shared_ptr<MenuButton> button = std::make_shared<MenuButton>(10, 3, "lol", "pog");
+		std::shared_ptr<MenuButton> button = std::make_shared<MenuButton>(1, 1, "mug moment", "pog");
 		
 		IDBlock idAllocation = {0, 1024};
 		std::shared_ptr<LevelMap> map = std::make_shared<LevelMap>(60, 20, manager, idAllocation);
 		//map->registerEntity(ent, Coordinate(5,5));
-		map->registerEntity(button, Coordinate(1,1));
+		map->registerEntity(button, Coordinate(3,4));
 		
 		//for (int i=0; i<4; i++) {
 		bool flag = true;
 		while (true) {
 			//camera.setOrigin(Coordinate(camera.getOrigin().x + 1, camera.getOrigin().y + 1));
 			char c = screen.getInput();
-			renderer.drawBox(Coordinate(0, 0), Coordinate(8,8), "UI");
 			for (int y=0; y<20; y++) {
 				for (int x=0; x<60; x++) {
-					//map->updateTile(Coordinate(x, y));
-					//map->drawTile(Coordinate(x, y), renderer);
+					map->updateTile(Coordinate(x, y));
+					map->drawTile(Coordinate(x, y), renderer);
 				}
 			}
 			usleep(500000);
