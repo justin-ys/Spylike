@@ -12,7 +12,7 @@ void EventManager::subscribe(std::shared_ptr<EventHandler> handler, std::string 
 	}
 }
 
-void EventManager::emit(Event event) {
+void EventManager::emit(Event& event) {
 	if (eventSubscribers.find(event.type) != eventSubscribers.end()) {
 		for (auto& handler : eventSubscribers[event.type]) {
 			handler->on_event(event);

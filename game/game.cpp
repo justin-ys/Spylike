@@ -8,6 +8,7 @@
 #include "event.h"
 #include "logger.h"
 #include "menus.h"
+#include "input.h"
 using namespace std;
 #include <vector>
 #include <string>
@@ -28,7 +29,7 @@ class epicEntity : public TileEntity {
 			painter.drawString(tile->pos, sprite.getCurrentFrame(), "pog");
 		}
 		
-		void on_event(Event e) {}
+		void on_event(Event& e) {}
 };
 		
 
@@ -54,6 +55,7 @@ namespace Game {
 		GeometryRenderer renderer(camera);
 		
 		std::shared_ptr<EventManager> manager(new EventManager());
+		std::shared_ptr<InputManager> inputManager(new InputManager(manager, screen));
 		std::shared_ptr<epicEntity> ent = std::make_shared<epicEntity>(coolSprite);
 		
 		std::shared_ptr<MenuButton> button = std::make_shared<MenuButton>(1, 1, "mug moment", "pog");
@@ -67,11 +69,11 @@ namespace Game {
 		bool flag = true;
 		while (true) {
 			//camera.setOrigin(Coordinate(camera.getOrigin().x + 1, camera.getOrigin().y + 1));
-			char c = screen.getInput();
 			for (int y=0; y<20; y++) {
 				for (int x=0; x<60; x++) {
 					map->updateTile(Coordinate(x, y));
 					map->drawTile(Coordinate(x, y), renderer);
+					//inputManager->update();
 				}
 			}
 			usleep(500000);

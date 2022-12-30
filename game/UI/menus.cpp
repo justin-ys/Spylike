@@ -9,7 +9,7 @@ extern SpylikeLogger LOGGER;
 MenuButton::MenuButton(int width, int height, std::string buttonText, std::string buttonID) : width{width}, height{height}, text{buttonText}, buttonID{buttonID} {}
 
 void MenuButton::click() {
-	eventManager->emit(Event("ButtonClickEvent", buttonID));
+	//eventManager->emit(Event("ButtonClickEvent", buttonID));
 }
 
 void MenuButton::draw(GeometryRenderer& painter) {
@@ -37,6 +37,6 @@ void MenuButton::draw(GeometryRenderer& painter) {
 	painter.drawString(drawOffset, drawnText, "UI");
 }
 
-void MenuButton::on_event(Event e) {}
+void MenuButton::on_event(Event& e) {}
 
 void MenuButton::on_update() {}

@@ -8,7 +8,7 @@
 
 class MenuButton : public TileEntity {
 	void on_update();
-	void on_event(Event e);
+	void on_event(Event& e);
 	void draw(GeometryRenderer& painter);
 	int width;
 	int height;
