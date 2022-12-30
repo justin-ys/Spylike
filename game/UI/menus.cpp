@@ -14,18 +14,13 @@ void MenuButton::click() {
 
 void MenuButton::draw(GeometryRenderer& painter) {
 	std::string drawnText = text;
-	if (text.length() > (width - 2)) {
-		if (width < 3) {
+	// note that subtracting 2 from width may cause integer overflow(???) so we have to do it this way
+	if (((text.length() + 2) > width) || (height < 3)) {
+		if (width <= 3) {
 			drawnText = "";
 		}
 		else {
-			drawnText = text.substr(0, text.length() - width - 2);
-			if (drawnText.length() >= 3) {
-				drawnText = text.substr(0, text.length() - 5) + "...";
-			}
-			else {
-				drawnText = "";
-			}
+			drawnText = text.substr(0, width - 5) + "...";
 		}
 	}
 	//LOGGER.log(std::to_string(tile->pos.x), DEBUG);
