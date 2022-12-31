@@ -29,7 +29,10 @@ class epicEntity : public TileEntity {
 			painter.drawString(tile->pos, sprite.getCurrentFrame(), "pog");
 		}
 		
-		void on_event(Event& e) {}
+		void on_event(Event& e) {
+			SpylikeEvents::KeyInputEvent &ke = dynamic_cast<SpylikeEvents::KeyInputEvent&>(e);
+			LOGGER.log(std::to_string(ke.c), DEBUG);
+		}
 };
 		
 
@@ -62,8 +65,9 @@ namespace Game {
 		
 		IDBlock idAllocation = {0, 1024};
 		std::shared_ptr<LevelMap> map = std::make_shared<LevelMap>(60, 20, manager, idAllocation);
-		//map->registerEntity(ent, Coordinate(5,5));
+		map->registerEntity(ent, Coordinate(5,5));
 		map->registerEntity(button, Coordinate(3,4));
+		manager->subscribe(ent, "KeyPressEvent");
 		
 		bool flag = true;
 		while (true) {
@@ -72,7 +76,7 @@ namespace Game {
 				for (int x=0; x<60; x++) {
 					map->updateTile(Coordinate(x, y));
 					map->drawTile(Coordinate(x, y), renderer);
-					//inputManager->update();
+					inputManager->update();
 				}
 			}
 			usleep(500000);

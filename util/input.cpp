@@ -6,6 +6,11 @@
 extern SpylikeLogger LOGGER;
 
 void InputManager::update() {
+	char ch = screen.getInput();
+	if (ch != '\0') {
+		SpylikeEvents::KeyInputEvent ev {"KeyPressEvent", ch};
+		manager->emit(ev);
+	}
 	/*
 	MouseEvent mouse = screen.getMouse();
 	if (mouse.mouseInput != MouseEvent::MOUSENONE) {

@@ -19,7 +19,7 @@ class TerminalScreen {
         //virtual char* read(int x, int y) = 0; 
         virtual void clear() = 0;
         virtual void end() = 0;
-        char getInput();
+        virtual char getInput() = 0;
         //virtual MouseEvent getMouse() = 0;
 };
 

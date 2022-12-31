@@ -7,6 +7,7 @@
 #include <memory>
 
 struct Event {
+	virtual ~Event() = default;
 	std::string type;
 	Event(std::string type): type(type) {}
 };
