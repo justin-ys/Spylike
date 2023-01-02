@@ -11,6 +11,21 @@ struct Coordinate {
     int x; 
     int y;
     Coordinate(int x=0, int y=0): x(x), y(y) {}
+    Coordinate operator+(const Coordinate& c) {
+		int x = this->x + c.x;
+		int y = this->y + c.y;
+		return Coordinate(x, y);
+	}
+	Coordinate operator-(const Coordinate& c) {
+		int x = this->x - c.x;
+		int y = this->y - c.y;
+		return Coordinate(x, y);
+	}
+	Coordinate operator*(const Coordinate& c) {
+		int x = this->x * c.x;
+		int y = this->y * c.y;
+		return Coordinate(x, y);
+	}
 };
 
 struct RenderLayer {
