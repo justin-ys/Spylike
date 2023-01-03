@@ -11,20 +11,20 @@ struct Coordinate {
     int x; 
     int y;
     Coordinate(int x=0, int y=0): x(x), y(y) {}
-    Coordinate operator+(const Coordinate& c) {
-		int x = this->x + c.x;
-		int y = this->y + c.y;
-		return Coordinate(x, y);
+    Coordinate operator+(const Coordinate& c) const {
+		int nx = x + c.x;
+		int ny = y + c.y;
+		return Coordinate(nx, ny);
 	}
-	Coordinate operator-(const Coordinate& c) {
-		int x = this->x - c.x;
-		int y = this->y - c.y;
-		return Coordinate(x, y);
+	Coordinate operator-(const Coordinate& c) const {
+		int nx = x - c.x;
+		int ny = y - c.y;
+		return Coordinate(nx, ny);
 	}
-	Coordinate operator*(const Coordinate& c) {
-		int x = this->x * c.x;
-		int y = this->y * c.y;
-		return Coordinate(x, y);
+	Coordinate operator*(const Coordinate& c) const {
+		int nx = x * c.x;
+		int ny = y * c.y;
+		return Coordinate(nx, ny);
 	}
 };
 
