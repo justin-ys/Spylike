@@ -19,7 +19,7 @@ class Object : public EventHandler {
 			assert(ID != -1);
 			on_update();
 		};
-		void event(Event e) {
+		void event(Event& e) {
 			assert(eventManager);
 			on_event(e);
 		};

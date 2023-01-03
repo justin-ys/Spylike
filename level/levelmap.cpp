@@ -5,6 +5,7 @@
 #include <stdexcept>
 #include <memory>
 #include <map>
+#include <algorithm>
 
 extern SpylikeLogger LOGGER;
 
@@ -15,6 +16,50 @@ void TileEntity::registerWorld(std::shared_ptr<LevelMap> levelMap) {
 void TileEntity::setTile(Tile* tileObj) {
 	tile = tileObj;
 }
+
+void TileEntity::setParent(std::shared_ptr<TileEntity> ent) {
+	if (parent != ent) {
+		parent = ent;
+		ent->addChild(shared_from_this());
+	}
+}
+
+void TileEntity::removeParent() {
+	if (parent != nullptr) {
+		parent = nullptr;
+		parent->removeChild(getID());
+	}
+}
+
+std::shared_ptr<TileEntity> TileEntity::getParent() {
+	return parent;
+}
+
+void TileEntity::addChild(std::shared_ptr<TileEntity> ent) {	
+	if (std::find(children.begin(), children.end(), ent) == children.end()) {
+		children.push_back(ent);
+		ent->setParent(shared_from_this());
+	}
+}
+
+void TileEntity::removeChild(int entityID) {
+	int idxToRemove = -1;
+	for (int i=0; i<children.size(); i++) {
+		if (children[i]->getID() == entityID) {
+			idxToRemove = i;
+		}
+	}
+	if (idxToRemove >= 0) {
+		std::shared_ptr<TileEntity> ent = children[idxToRemove];
+		children.erase(children.begin() + idxToRemove);
+		ent->removeParent();
+	}
+}
+
+std::vector<std::shared_ptr<TileEntity>> TileEntity::getChildren() {
+	return children;
+}
+
 	
 std::vector<std::shared_ptr<TileEntity>> Tile::getEntities() {
 	return entities;
@@ -73,7 +118,7 @@ void LevelMap::destroyTile(Coordinate coord) {
 	tileMap[getTileIndex(coord)] = std::shared_ptr<Tile>(nullptr);
 }
 
-std::shared_ptr<TileEntity> LevelMap::removeEntity(int entityID) {
+std::shared_ptr<TileEntity> LevelMap::findEntity(int entityID) {
 	if (trackedEntities.find(entityID) == trackedEntities.end()) {
 		return nullptr;
 	}
@@ -88,25 +133,49 @@ std::shared_ptr<TileEntity> LevelMap::removeEntity(int entityID) {
 			}
 		}
 	}
+	return targetEntity;
+}
+
+std::shared_ptr<TileEntity> LevelMap::removeEntity(int entityID) {
+	std::shared_ptr<TileEntity> targetEntity = findEntity(entityID);
 	if (targetEntity) {
-		currentTile->removeEntity(targetEntity->getID());
-		if (currentTile->getEntities().size() == 0) {
-			destroyTile(pos);
-		}
-		trackedEntities.erase(targetEntity->getID());
+		removeEntity(targetEntity);
 		return targetEntity;
 	}
 	return nullptr;
 }
 
-void LevelMap::moveEntity(int entityID, Coordinate pos) {
-	std::shared_ptr<TileEntity> ent = removeEntity(entityID);
-	if (ent) {
-		putEntity(ent, pos);
+void LevelMap::removeEntity(std::shared_ptr<TileEntity> ent) {
+	auto currentTile = getTile(ent->tile->pos); // entity's tile is const
+	if (currentTile) {
+		currentTile->removeEntity(ent->getID());
+		if (currentTile->getEntities().size() == 0) {
+			destroyTile(currentTile->pos);
+		}
+		for (auto child : ent->getChildren()) {
+			removeEntity(child);
+		}
+		trackedEntities.erase(ent->getID());
 	}
-	trackedEntities[entityID] = pos;
 }
 
+void LevelMap::moveEntity(int entityID, Coordinate pos) {
+	std::shared_ptr<TileEntity> ent = findEntity(entityID);
+	moveEntity(ent, pos);
+}
+
+void LevelMap::moveEntity(std::shared_ptr<TileEntity> ent, Coordinate pos) {
+	if (ent) {
+		for (auto child : ent->getChildren()) { 
+			if (child->tile) {
+				moveEntity(child, pos + (child->tile->pos - ent->tile->pos));
+			}
+		}
+		removeEntity(ent);
+		putEntity(ent, pos);
+	}
+	trackedEntities[ent->getID()] = pos;
+}
 
 void LevelMap::updateTile(Coordinate coord) {
 	std::shared_ptr<Tile> tile = getTile(coord);

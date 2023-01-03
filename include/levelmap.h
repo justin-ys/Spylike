@@ -16,12 +16,20 @@ struct IDBlock {
 	int endID;
 };
 
-class TileEntity : public SpritedObject {
+class TileEntity : public SpritedObject, public std::enable_shared_from_this<TileEntity> {
+	std::shared_ptr<TileEntity> parent = nullptr;
+	std::vector<std::shared_ptr<TileEntity>> children;
 	protected:
 		std::shared_ptr<LevelMap> world;
 	public:
 		const Tile* tile = nullptr;
 		void setTile(Tile* tileObj);
+		void setParent(std::shared_ptr<TileEntity> ent);
+		void removeParent();
+		std::shared_ptr<TileEntity> getParent();
+		void addChild(std::shared_ptr<TileEntity> ent);
+		void removeChild(int entityID);
+		std::vector<std::shared_ptr<TileEntity>> getChildren();
 		bool isAlive = true;
 		void registerWorld(std::shared_ptr<LevelMap> levelMap);
 };
@@ -53,11 +61,14 @@ class LevelMap : public std::enable_shared_from_this<LevelMap> {
 		std::shared_ptr<Tile> getTile(Coordinate coord);
 		void putEntity(std::shared_ptr<TileEntity> ent, Coordinate coord);
 		void destroyTile(Coordinate coord);
+		std::shared_ptr<TileEntity> findEntity(int entityID);
 		std::shared_ptr<TileEntity> removeEntity(int entityID); //returns pointer to entity that was removed if it exists
+		void removeEntity(std::shared_ptr<TileEntity> ent);
 		void moveEntity(int entityID, Coordinate pos);
+		void moveEntity(std::shared_ptr<TileEntity> ent, Coordinate pos);
 		void updateTile(Coordinate coord);
 		void drawTile(Coordinate coord, GeometryRenderer& camera);
-		bool isInMap(Coordinate coord); //convienience function
+		bool isInMap(Coordinate coord); //convenience function
 		void registerEntity(std::shared_ptr<TileEntity> ent, Coordinate pos);
 		Coordinate getEntityPos(int entityID);
 };
