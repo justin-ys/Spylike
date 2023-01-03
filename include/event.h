@@ -25,7 +25,11 @@ namespace SpylikeEvents {
 		char c;
 		KeyInputEvent(std::string type, char c) : Event(type), c(c) {}
 	};
-
+	
+	struct MenuButtonEvent : Event {
+		std::string buttonID;
+		MenuButtonEvent(std::string type, std::string buttonID) : Event(type), buttonID(buttonID) {}
+	};
 }
 
 class EventHandler {

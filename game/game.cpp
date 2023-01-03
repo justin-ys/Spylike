@@ -62,12 +62,16 @@ namespace Game {
 		std::shared_ptr<epicEntity> ent = std::make_shared<epicEntity>(coolSprite);
 		
 		std::shared_ptr<MenuButton> button = std::make_shared<MenuButton>(20, 4, "mug moment", "pog");
+		std::shared_ptr<Menu> menu = std::make_shared<Menu>(60, 20);
+		menu->addChild(button);
 		
 		IDBlock idAllocation = {0, 1024};
 		std::shared_ptr<LevelMap> map = std::make_shared<LevelMap>(60, 20, manager, idAllocation);
 		map->registerEntity(ent, Coordinate(5,5));
-		map->registerEntity(button, Coordinate(3,4));
-		manager->subscribe(ent, "KeyPressEvent");
+		map->registerEntity(menu, Coordinate(1,1));
+		menu->addButton(button, Coordinate(0,0));
+		map->moveEntity(menu, Coordinate(3,3));
+		menu->click();
 		
 		bool flag = true;
 		while (true) {

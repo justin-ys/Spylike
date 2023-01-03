@@ -171,7 +171,14 @@ void LevelMap::moveEntity(std::shared_ptr<TileEntity> ent, Coordinate pos) {
 				moveEntity(child, pos + (child->tile->pos - ent->tile->pos));
 			}
 		}
-		removeEntity(ent);
+		auto currentTile = getTile(ent->tile->pos);
+		if (currentTile) {
+			currentTile->removeEntity(ent->getID());
+			if (currentTile->getEntities().size() == 0) {
+				destroyTile(currentTile->pos);
+			}
+			trackedEntities.erase(ent->getID());
+		}
 		putEntity(ent, pos);
 	}
 	trackedEntities[ent->getID()] = pos;

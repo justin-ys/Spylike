@@ -3,13 +3,15 @@
 #include "event.h"
 #include "logger.h"
 #include <string>
+#include <stdexcept>
 
 extern SpylikeLogger LOGGER;
 
 MenuButton::MenuButton(int width, int height, std::string buttonText, std::string buttonID) : width{width}, height{height}, text{buttonText}, buttonID{buttonID} {}
 
 void MenuButton::click() {
-	//eventManager->emit(Event("ButtonClickEvent", buttonID));
+	auto ev = SpylikeEvents::MenuButtonEvent("ButtonClickEvent", buttonID);
+	eventManager->emit(ev);
 }
 
 void MenuButton::draw(GeometryRenderer& painter) {
@@ -23,7 +25,6 @@ void MenuButton::draw(GeometryRenderer& painter) {
 			drawnText = text.substr(0, width - 5) + "...";
 		}
 	}
-	//LOGGER.log(std::to_string(tile->pos.x), DEBUG);
 	Coordinate topLeft = Coordinate(tile->pos.x, tile->pos.y);
 	Coordinate bottomRight = Coordinate(tile->pos.x + width - 1, tile->pos.y + height - 1);
 	painter.drawBox(topLeft, bottomRight, "UI");
@@ -32,6 +33,47 @@ void MenuButton::draw(GeometryRenderer& painter) {
 	painter.drawString(drawOffset, drawnText, "UI");
 }
 
+std::string MenuButton::getButtonID() {
+	return buttonID;
+}
+
 void MenuButton::on_event(Event& e) {}
 
 void MenuButton::on_update() {}
+
+
+void Menu::draw(GeometryRenderer& painter) {}
+
+// pos is *relative* to menu
+void Menu::addButton(std::shared_ptr<MenuButton> button, Coordinate pos) {	
+	if (!tile) {
+		throw std::runtime_error("Menu must be registered before adding buttons");
+	}
+	buttons.insert({button->getButtonID(), button});
+	selectionList.push(button->getButtonID());
+	world->registerEntity(button, tile->pos + pos);
+	addChild(button);
+	currentSelection = button->getButtonID();
+}
+
+void Menu::setSelection(std::string buttonID) {
+	currentSelection = buttonID;
+}
+
+void Menu::selectNext() {
+	if (selectionList.size() > 0) {
+		selectionList.push(selectionList.front());
+		selectionList.pop();
+		setSelection(selectionList.front());
+	}
+}
+
+void Menu::click() {
+	if (currentSelection != "") {
+		buttons[currentSelection]->click();
+	}
+}
+
+void Menu::on_event(Event& e) {}
+
+void Menu::on_update() {}
