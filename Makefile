@@ -1,5 +1,5 @@
 CXX=g++
-CPPFLAGS=-Iinclude -Ilib/include
+CPPFLAGS=-std=c++11 -Iinclude -Ilib/include
 LDLIBS=-Llib/bin -lpdcurses
 OBJS=graphics/*.cpp logging/*.cpp models/*.cpp level/*.cpp game/*.cpp game/UI/*.cpp util/*.cpp main.cpp
 VER=vA1
@@ -7,13 +7,20 @@ VER=vA1
 ifndef PDCURSES_BACKEND
 	ifeq ($(OS),Windows_NT)
 		PDCURSES_BACKEND=wincon
-	else ifeq ($(UNAME_S),Linux)
-		PDCURSES_BACKEND=x11
+	else
+		UNAME_S := $(shell uname -s)
+		ifeq ($(UNAME_S),Linux)
+			PDCURSES_BACKEND=x11
+		endif
 	endif
 endif
 
 ifndef PDCURSES_BACKEND
-$(error  "OS not detected or supported - please specify PDCurses backend (wincon, x11, sdl2))
+	$(error  "OS not detected or supported - please specify PDCurses backend (wincon, x11, sdl2))
+endif
+
+ifeq ($(PDCURSES_BACKEND), x11)
+	LDLIBS+= -lX11 -lXt -lXaw -lXmu -lXext -lXpm -lstdc++
 endif
 
 build: build-pdcurses
@@ -24,13 +31,15 @@ debug: CPPFLAGS+= -g
 debug: build
 
 build-pdcurses:
+	cd lib && mkdir -p bin
+	cd lib && mkdir -p include
 ifeq ($(PDCURSES_BACKEND), wincon)
 	cd lib/PDCurses/wincon && $(MAKE)
 	cp lib/PDCurses/wincon/pdcurses.a lib/bin/libpdcurses.a
 else ifeq ($(PDCURSES_BACKEND), x11)
-	./configure
+	cd lib/PDCurses/x11 && ./configure
 	cd lib/PDCurses/x11 && $(MAKE)
-	cp lib/PDCurses/x11/libXcurses.a lib/bin/libpdcurses.a
+	cp lib/PDCurses/x11/libXCurses.a lib/bin/libpdcurses.a
 else ifeq ($(PDCURSES_BACKEND), sdl2)
 	cd lib/PDCurses/sdl2 && $(MAKE)
 else
