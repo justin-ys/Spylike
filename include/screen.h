@@ -1,7 +1,7 @@
 #ifndef SPYLIKE_SCREENRENDERING_H
 #define SPYLIKE_SCREENRENDERING_H
 
-#include <ncurses.h>
+#include <curses.h>
 #include <string>
 
 struct MouseEvent {
