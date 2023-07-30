@@ -26,6 +26,14 @@ struct Coordinate {
 		int ny = y * c.y;
 		return Coordinate(nx, ny);
 	}
+	bool operator==(const Coordinate& c) const {
+		if ((x == c.x) && (y == c.y)) return true;
+		return false;
+	}
+	bool operator!=(const Coordinate& c) const {
+		if ((x != c.x) || (y != c.y)) return true;
+		return false;
+	}
 };
 
 struct RenderLayer {
