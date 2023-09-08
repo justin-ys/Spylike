@@ -1,7 +1,7 @@
 CXX=g++
 CPPFLAGS=-std=c++11 -Iinclude
 LDLIBS=
-OBJS=graphics/*.cpp logging/*.cpp models/*.cpp level/*.cpp game/*.cpp game/UI/*.cpp util/*.cpp main.cpp
+OBJS=graphics/*.cpp logging/*.cpp models/*.cpp level/*.cpp game/*.cpp game/UI/*.cpp main.cpp
 VER=vA1
 
 ifndef PDCURSES_BACKEND
