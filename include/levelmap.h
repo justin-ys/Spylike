@@ -18,6 +18,8 @@ struct IDBlock {
 
 typedef int EntityID;
 
+enum WorldType { Roguelike, Platform };
+
 class TileEntity : public SpritedObject, public std::enable_shared_from_this<TileEntity> {
 	std::shared_ptr<TileEntity> parent = nullptr;
 	std::vector<std::shared_ptr<TileEntity>> children;
@@ -64,7 +66,8 @@ class LevelMap : public std::enable_shared_from_this<LevelMap> {
 	public:
 		const int width;
 		const int height;
-		LevelMap(int width, int height, std::shared_ptr<EventManager> eventManager, IDBlock idRange);
+		const WorldType worldType;
+		LevelMap(int width, int height, std::shared_ptr<EventManager> eventManager, IDBlock idRange, WorldType wt=Platform);
 		std::shared_ptr<Tile> getTile(Coordinate coord);
 		void updateTile(Coordinate coord);
 		void drawTile(Coordinate coord, GeometryRenderer& painter);

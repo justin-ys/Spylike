@@ -92,7 +92,7 @@ void Tile::removeEntity(EntityID entityID) {
 	}
 }
 
-LevelMap::LevelMap(int width, int height, std::shared_ptr<EventManager> eventManager, IDBlock idRange) : width{width}, height{height}, manager{eventManager}, idRange{idRange} {
+LevelMap::LevelMap(int width, int height, std::shared_ptr<EventManager> eventManager, IDBlock idRange, WorldType wt) : width{width}, height{height}, manager{eventManager}, idRange{idRange}, worldType{wt} {
 	tileMap = std::vector<std::shared_ptr<Tile>>(width*height);
 	std::fill(tileMap.begin(), tileMap.end(), std::shared_ptr<Tile>(nullptr));
 	currentID = idRange.startID;
