@@ -100,6 +100,11 @@ int TextRenderManager::getScreenHeight() {
 
 GeometryRenderer::GeometryRenderer(TextRenderManager& renderManager) : manager(renderManager) {}
 
+void GeometryRenderer::draw(Coordinate coord, char c, std::string layerName) {
+	manager.draw(coord, c, layerName);
+	manager.renderToScreen();
+}
+
 void GeometryRenderer::drawString(Coordinate pos, std::string str, std::string layerName) {
 	Coordinate currentPos = pos;
 	for (const char& c : str) {

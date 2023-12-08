@@ -102,7 +102,7 @@ char* NcursesTerminalScreen::read(int x, int y) {
     
 void NcursesTerminalScreen::clear() {
     werase(win);
-	wrefresh(win);
+	//wrefresh(win);
 }
 
 void NcursesTerminalScreen::end() { 

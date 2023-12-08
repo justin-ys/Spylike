@@ -9,6 +9,7 @@
 #include "logger.h"
 #include "menus.h"
 #include "input.h"
+#include "character.h"
 using namespace std;
 #include <vector>
 #include <string>
@@ -26,7 +27,7 @@ class epicEntity : public TileEntity {
 			sprite.nextFrame();
 		}
 		void draw(GeometryRenderer& painter) {
-			painter.drawString(tile->pos, sprite.getCurrentFrame(), "pog");
+			painter.drawString(tile->pos, sprite.getCurrentFrame(), "Entity");
 		}
 		
 		void on_event(Event& e) {
@@ -51,7 +52,7 @@ namespace Game {
 		vector<SpriteFrame> frames = {f1, f2, f3, f4};
 		Sprite coolSprite(frames, 4);
 		
-		vector<RenderLayer> layers = {RenderLayer("pog", 1), RenderLayer("UI", 2)};
+		vector<RenderLayer> layers = {RenderLayer("Entity", 1), RenderLayer("UI", 2)};
 		NcursesTerminalScreen screen(60, 20);
 		
 		Camera camera(screen, 60, 20, layers);
@@ -61,14 +62,18 @@ namespace Game {
 		std::shared_ptr<InputManager> inputManager(new InputManager(manager, screen));
 		std::shared_ptr<epicEntity> ent = std::make_shared<epicEntity>(coolSprite);
 		
-		std::shared_ptr<MenuButton> button = std::make_shared<MenuButton>(20, 4, "mug moment", "pog");
+		std::shared_ptr<MenuButton> button = std::make_shared<MenuButton>(20, 4, "mug moment", "Entity");
 		std::shared_ptr<Menu> menu = std::make_shared<Menu>(60, 20);
+		std::shared_ptr<Player> player = std::make_shared<Player>(camera);
+		manager->subscribe(player, "INPUT_KeyPress");
+	
 		menu->addChild(button);
 		
 		IDBlock idAllocation = {0, 1024};
 		std::shared_ptr<LevelMap> map = std::make_shared<LevelMap>(60, 20, manager, idAllocation);
 		map->registerEntity(ent, Coordinate(5,5));
 		map->registerEntity(menu, Coordinate(1,1));
+		map->registerEntity(player, Coordinate(10, 10));
 		menu->addButton(button, Coordinate(0,0));
 		map->moveEntity(menu, Coordinate(3,3));
 		menu->click();
@@ -76,14 +81,14 @@ namespace Game {
 		bool flag = true;
 		while (true) {
 			//camera.setOrigin(Coordinate(camera.getOrigin().x + 1, camera.getOrigin().y + 1));
+			inputManager->update();
 			for (int y=0; y<20; y++) {
 				for (int x=0; x<60; x++) {
 					map->updateTile(Coordinate(x, y));
 					map->drawTile(Coordinate(x, y), renderer);
-					inputManager->update();
 				}
 			}
-			usleep(500000);
+			usleep(50000);
 			camera.clearScreen();
 		}
 

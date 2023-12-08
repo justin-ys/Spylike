@@ -51,7 +51,6 @@ class TextRenderManager {
     std::vector<std::string> orderedLayers;
     public:
         TextRenderManager(TerminalScreen& screen, std::vector<RenderLayer> layers);
-		// why is this virtual
         virtual void draw(Coordinate coord, char c, std::string layerName);
         void renderToScreen();
 		void clearLayer(std::string layerName);
@@ -64,9 +63,11 @@ class TextRenderManager {
 };
 
 class GeometryRenderer {
-	TextRenderManager& manager;
+	protected:
+		TextRenderManager& manager;
 	public:
 		GeometryRenderer(TextRenderManager& renderManager);
+		void draw(Coordinate coord, char c, std::string layerName);
 		void drawString(Coordinate pos, std::string str, std::string layerName);
 		void drawLine(Coordinate p1, Coordinate p2, char c, std::string layerName);
 		void drawBox(Coordinate p1, Coordinate p2, std::string layerName);

@@ -1,6 +1,9 @@
 #include "camera.h"
 #include "rendering.h"
 #include "screen.h"
+#include "logger.h"
+
+extern SpylikeLogger LOGGER;
 
 Camera::Camera(TerminalScreen& screen, int width, int height, std::vector<RenderLayer> layers) : width{width}, height{height}, TextRenderManager(screen, layers) {
 	origin = Coordinate(0,0);

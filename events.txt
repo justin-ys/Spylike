@@ -1,0 +1,4 @@
+STANDARD EVENT TYPES
+
+Keyboard:
+INPUT_KEYPRESS : Of type KeyInputEvent. For any keypress.

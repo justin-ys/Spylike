@@ -40,6 +40,7 @@ class TileEntity : public SpritedObject, public std::enable_shared_from_this<Til
 		void registerWorld(std::shared_ptr<LevelMap> levelMap);
 		void kill();
 		bool isAlive();
+		Coordinate getPos();
 };
 
 class Tile {
@@ -72,9 +73,11 @@ class LevelMap : public std::enable_shared_from_this<LevelMap> {
 		void updateTile(Coordinate coord);
 		void drawTile(Coordinate coord, GeometryRenderer& painter);
 		void destroyTile(Coordinate coord);
+		std::shared_ptr<TileEntity> findEntity(int entityID);
 		void putEntity(std::shared_ptr<TileEntity> ent, Coordinate coord);
 		void removeEntity(std::shared_ptr<TileEntity> ent);
 		void moveEntity(std::shared_ptr<TileEntity> ent, Coordinate pos);
+		void moveEntity(EntityID entityID, Coordinate pos);
 		bool isInMap(Coordinate coord); //convenience function
 		void registerEntity(std::shared_ptr<TileEntity> ent, Coordinate pos);
 };

@@ -8,7 +8,7 @@ extern SpylikeLogger LOGGER;
 void InputManager::update() {
 	char ch = screen.getInput();
 	if (ch != '\0') {
-		SpylikeEvents::KeyInputEvent ev {"KeyPressEvent", ch};
+		SpylikeEvents::KeyInputEvent ev {"INPUT_KeyPress", ch};
 		manager->emit(ev);
 	}
 	/*

@@ -15,7 +15,8 @@ class Camera : public TextRenderManager {
 		Camera(TerminalScreen& screen, int width, int height, std::vector<RenderLayer> layers);
 		void setOrigin(Coordinate pos);
 		Coordinate getOrigin();
-		virtual void draw(Coordinate coord, char c, std::string layerName);
+		// takes a world coordinate, converts to camera coordinates and draws.
+		void draw(Coordinate coord, char c, std::string layerName) override;
 };
 
 #endif
