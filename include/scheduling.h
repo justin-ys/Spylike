@@ -8,7 +8,9 @@
 class ScheduledTask {
 	public:
 		ScheduledTask(std::string id);
+		// should be getter/setter
 		std::string id;
+		// ditto
 		bool running;
 		virtual void update() = 0;
 };
@@ -22,7 +24,9 @@ class FrameScheduler {
 		void run();
 		void pause();
 		void resume();
+		// no more IDs
 		void pauseTask(std::string taskID);
+		// should be starttask
 		void resumeTask(std::string taskID);
 };
 		

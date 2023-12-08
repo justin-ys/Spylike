@@ -29,6 +29,7 @@ struct Coordinate {
 };
 
 struct RenderLayer {
+	//const?
     std::string name;
     int priority;
     RenderLayer(std::string name, int priority): name(name), priority(priority) {}
@@ -50,6 +51,7 @@ class TextRenderManager {
     std::vector<std::string> orderedLayers;
     public:
         TextRenderManager(TerminalScreen& screen, std::vector<RenderLayer> layers);
+		// why is this virtual
         virtual void draw(Coordinate coord, char c, std::string layerName);
         void renderToScreen();
 		void clearLayer(std::string layerName);
