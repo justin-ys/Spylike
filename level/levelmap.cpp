@@ -163,28 +163,56 @@ std::shared_ptr<TileEntity> LevelMap::findEntity(int entityID) {
 	return targetEntity;
 }
 
-void LevelMap::moveEntity(std::shared_ptr<TileEntity> ent, Coordinate pos) {
+bool LevelMap::moveEntity(std::shared_ptr<TileEntity> ent, Coordinate pos) {
 	if (ent) {
+		std::vector<std::shared_ptr<TileEntity>> movedChildren;
+		bool result = false;
 		for (auto child : ent->getChildren()) { 
 			if (child->tile) {
-				moveEntity(child, pos + (child->tile->pos - ent->tile->pos));
+				result = moveEntity(child, pos + (child->tile->pos - ent->tile->pos));
+				if (result) break;
+				else movedChildren.push_back(child);
 			}
 		}
-		auto currentTile = getTile(ent->tile->pos);
-		if (currentTile) {
-			currentTile->removeEntity(ent->getID());
-			if (currentTile->getEntities().size() == 0) {
-				destroyTile(currentTile->pos);
+		if (!result) {
+			auto targetTile = getTile(pos);
+			bool foundCollidable = false;
+			if (targetTile && targetTile->getEntities().size() != 0) {
+				for (auto occupier : targetTile->getEntities()) {
+					if (occupier->isCollidable) {
+						occupier->on_collide(ent);
+						ent->on_collide(occupier);
+						foundCollidable = true;
+					
+					}
+				}
 			}
-			trackedEntities.erase(ent->getID());
+			if (!foundCollidable) {
+				auto currentTile = getTile(ent->tile->pos);
+				if (currentTile) { 
+					currentTile->removeEntity(ent->getID());
+					if (currentTile->getEntities().size() == 0) {
+						destroyTile(currentTile->pos);
+					}
+					trackedEntities.erase(ent->getID());
+				}
+				putEntity(ent, pos);
+				trackedEntities[ent->getID()] = pos;
+				return true;
+			}
 		}
-		putEntity(ent, pos);
+		// We didn't succeed in moving the parent
+		for (auto movedChild : movedChildren) {
+			moveEntity(movedChild, movedChild->tile->pos - ent->tile->pos);
+		}
+					
 	}
-	trackedEntities[ent->getID()] = pos;
+	return false;
 }
 
-void LevelMap::moveEntity(EntityID entityID, Coordinate pos) {
-	moveEntity(findEntity(entityID), pos);
+bool LevelMap::moveEntity(EntityID entityID, Coordinate pos) {
+	bool result = moveEntity(findEntity(entityID), pos);
+	return result;
 }
 
 void LevelMap::updateTile(Coordinate coord) {

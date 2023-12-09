@@ -7,7 +7,7 @@
 
 extern SpylikeLogger LOGGER;
 
-MenuButton::MenuButton(int width, int height, std::string buttonText, std::string buttonID) : width{width}, height{height}, text{buttonText}, buttonID{buttonID} {}
+MenuButton::MenuButton(int width, int height, std::string buttonText, std::string buttonID) : TileEntity{false}, width{width}, height{height}, text{buttonText}, buttonID{buttonID} {}
 
 void MenuButton::click() {
 	auto ev = SpylikeEvents::MenuButtonEvent("ButtonClickEvent", buttonID);

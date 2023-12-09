@@ -35,8 +35,8 @@ void Player::on_event(Event& e) {
 				}
 			}
 			if (world->isInMap(newPos)) {
-				eventManager->emit(ce);
-				world->moveEntity(getID(), newPos);
+				bool res = world->moveEntity(getID(), newPos);
+				if (res) eventManager->emit(ce);
 			}
 		}
 	}
@@ -46,4 +46,11 @@ void Player::draw(GeometryRenderer& painter) {
 	painter.draw(getPos(), '@', "UI");
 }
 
-void Player::on_update() {}
+void Player::on_update() {
+	if (health == 0) {
+		Event playerDeath = Event("GAME_PlayerDeath");
+		eventManager->emit(playerDeath);
+	}
+}
+
+void Player::on_collide(std::shared_ptr<TileEntity> collider) {}

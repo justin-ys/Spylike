@@ -22,7 +22,7 @@ extern SpylikeLogger LOGGER;
 class epicEntity : public TileEntity {
 	Sprite sprite;
 	public:
-		epicEntity(Sprite sprite) : sprite(sprite) {}
+		epicEntity(Sprite sprite) : TileEntity(true), sprite(sprite) {}
 		void on_update() {
 			sprite.nextFrame();
 		}
@@ -67,21 +67,21 @@ namespace Game {
 		
 		std::shared_ptr<epicEntity> ent = std::make_shared<epicEntity>(coolSprite);
 		
-		std::shared_ptr<MenuButton> button = std::make_shared<MenuButton>(20, 4, "mug moment", "Entity");
-		std::shared_ptr<Menu> menu = std::make_shared<Menu>(60, 20);
+		//std::shared_ptr<MenuButton> button = std::make_shared<MenuButton>(20, 4, "mug moment", "Entity");
+		//std::shared_ptr<Menu> menu = std::make_shared<Menu>(60, 20);
 		std::shared_ptr<Player> player = std::make_shared<Player>();
 		manager->subscribe(player, "INPUT_KeyPress");
 	
-		menu->addChild(button);
+		//menu->addChild(button);
 		
 		IDBlock idAllocation = {0, 1024};
 		std::shared_ptr<LevelMap> map = std::make_shared<LevelMap>(60, 20, manager, idAllocation);
 		map->registerEntity(ent, Coordinate(5,5));
-		map->registerEntity(menu, Coordinate(1,1));
+		//map->registerEntity(menu, Coordinate(1,1));
 		map->registerEntity(player, Coordinate(10, 10));
-		menu->addButton(button, Coordinate(0,0));
-		map->moveEntity(menu, Coordinate(3,3));
-		menu->click();
+		//menu->addButton(button, Coordinate(0,0));
+		//map->moveEntity(menu, Coordinate(3,3));
+		//menu->click();
 		
 		bool flag = true;
 		while (true) {

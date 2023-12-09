@@ -9,3 +9,6 @@ CAMERA_MoveDown: Moves the camera down by one unit. (CameraEvent)
 CAMERA_MoveRight: Moves the camera right by one unit. (CameraEvent)
 CAMERA_MoveLeft: Moves the camera left by one unit. (CameraEvent)
 CAMERA_Move: Moves the camera to pos specified in CameraEvent.pos.
+
+Game:
+GAME_PlayerDeath: Emitted when the Player reaches 0 health (or some other death-causing event)

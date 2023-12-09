@@ -28,6 +28,7 @@ class TileEntity : public SpritedObject, public std::enable_shared_from_this<Til
 		std::shared_ptr<LevelMap> world;
 	public:
 	    // getter/setter
+		const bool isCollidable;
 		const Tile* tile = nullptr;
 		void setTile(Tile* tileObj);
 		void setParent(std::shared_ptr<TileEntity> ent);
@@ -41,6 +42,8 @@ class TileEntity : public SpritedObject, public std::enable_shared_from_this<Til
 		void kill();
 		bool isAlive();
 		Coordinate getPos();
+		virtual void on_collide(std::shared_ptr<TileEntity> collider) {}
+		TileEntity(bool collidable) : isCollidable{collidable} {}
 };
 
 class Tile {
@@ -76,8 +79,9 @@ class LevelMap : public std::enable_shared_from_this<LevelMap> {
 		std::shared_ptr<TileEntity> findEntity(int entityID);
 		void putEntity(std::shared_ptr<TileEntity> ent, Coordinate coord);
 		void removeEntity(std::shared_ptr<TileEntity> ent);
-		void moveEntity(std::shared_ptr<TileEntity> ent, Coordinate pos);
-		void moveEntity(EntityID entityID, Coordinate pos);
+		// Returns true if entity successfully moved, false otherwise (e.g. collision)
+		bool moveEntity(std::shared_ptr<TileEntity> ent, Coordinate pos);
+		bool moveEntity(EntityID entityID, Coordinate pos);
 		bool isInMap(Coordinate coord); //convenience function
 		void registerEntity(std::shared_ptr<TileEntity> ent, Coordinate pos);
 };

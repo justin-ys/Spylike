@@ -31,7 +31,7 @@ class Menu : public TileEntity {
 	void on_update();
 	void on_event(Event& e);
 	public:
-		Menu(int width, int height): width{width}, height{height} {}
+		Menu(int width, int height): TileEntity{false}, width{width}, height{height} {}
 		void draw(GeometryRenderer& painter);
 		void addButton(std::shared_ptr<MenuButton> button, Coordinate pos);
 		void setSelection(std::string buttonID);
