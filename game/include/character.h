@@ -5,12 +5,9 @@
 #include "camera.h"
 
 class Player : public TileEntity {
-	Camera& camera;
 	void on_event(Event& e) override;
 	void on_update() override;
 	void draw(GeometryRenderer& painter) override;
-	public:
-		Player(Camera& camera) : camera{camera} {}
 };
 
 #endif

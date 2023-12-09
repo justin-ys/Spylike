@@ -6,7 +6,7 @@
 
 void ManagedEntity::on_update() { parent.update(); }
 void ManagedEntity::draw(GeometryRenderer& painter) { parent.draw(painter); }
-void ManagedEntity::on_event(Event e) { parent.event(e); }
+void ManagedEntity::on_event(Event& e) { parent.event(e); }
 
 void ManagerEntity::createChild(Coordinate pos) { }
 

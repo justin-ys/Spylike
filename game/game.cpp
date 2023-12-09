@@ -54,17 +54,22 @@ namespace Game {
 		
 		vector<RenderLayer> layers = {RenderLayer("Entity", 1), RenderLayer("UI", 2)};
 		NcursesTerminalScreen screen(60, 20);
-		
-		Camera camera(screen, 60, 20, layers);
-		GeometryRenderer renderer(camera);
-		
+
 		std::shared_ptr<EventManager> manager(new EventManager());
 		std::shared_ptr<InputManager> inputManager(new InputManager(manager, screen));
+		
+		std::shared_ptr<Camera> camera = std::make_shared<Camera>(screen, 60, 20, layers);
+		GeometryRenderer renderer(*camera);
+		manager->subscribe(camera, "CAMERA_MoveUp");
+		manager->subscribe(camera, "CAMERA_MoveDown");
+		manager->subscribe(camera, "CAMERA_MoveLeft");
+		manager->subscribe(camera, "CAMERA_MoveRight");
+		
 		std::shared_ptr<epicEntity> ent = std::make_shared<epicEntity>(coolSprite);
 		
 		std::shared_ptr<MenuButton> button = std::make_shared<MenuButton>(20, 4, "mug moment", "Entity");
 		std::shared_ptr<Menu> menu = std::make_shared<Menu>(60, 20);
-		std::shared_ptr<Player> player = std::make_shared<Player>(camera);
+		std::shared_ptr<Player> player = std::make_shared<Player>();
 		manager->subscribe(player, "INPUT_KeyPress");
 	
 		menu->addChild(button);
@@ -89,7 +94,7 @@ namespace Game {
 				}
 			}
 			usleep(50000);
-			camera.clearScreen();
+			camera->clearScreen();
 		}
 
 		screen.end();

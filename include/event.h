@@ -5,6 +5,7 @@
 #include <vector>
 #include <map>
 #include <memory>
+#include "rendering.h"
 
 struct Event {
 	virtual ~Event() = default;
@@ -24,6 +25,11 @@ namespace SpylikeEvents {
 	struct KeyInputEvent : Event {
 		char c;
 		KeyInputEvent(std::string type, char c) : Event(type), c(c) {}
+	};
+
+	struct CameraEvent : Event {
+		Coordinate pos;
+		CameraEvent(std::string type, Coordinate pos=Coordinate(0,0)) : Event(type), pos{pos} {}
 	};
 	
 	struct MenuButtonEvent : Event {

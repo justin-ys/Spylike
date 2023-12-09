@@ -4,10 +4,11 @@
 #include "rendering.h"
 #include "levelmap.h"
 #include "screen.h"
+#include "event.h"
 #include <vector>
 
 
-class Camera : public TextRenderManager {
+class Camera : public TextRenderManager, public EventHandler {
 	Coordinate origin;
 	int width;
 	int height;
@@ -17,6 +18,7 @@ class Camera : public TextRenderManager {
 		Coordinate getOrigin();
 		// takes a world coordinate, converts to camera coordinates and draws.
 		void draw(Coordinate coord, char c, std::string layerName) override;
+		void on_event(Event& e) override;
 };
 
 #endif

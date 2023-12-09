@@ -2,6 +2,7 @@
 #include "rendering.h"
 #include "screen.h"
 #include "logger.h"
+#include "event.h"
 
 extern SpylikeLogger LOGGER;
 
@@ -19,6 +20,25 @@ void Camera::draw(Coordinate coord, char c, std::string layerName) {
 		if ((cameraMapped.x <= width) && (cameraMapped.y <= height)) {
 			TextRenderManager::draw(cameraMapped, c, layerName);
 		}
+	}
+}
+
+void Camera::on_event(Event& e) {
+	if (e.type == "CAMERA_MoveUp") {
+		setOrigin(Coordinate(origin.x, origin.y-1));
+	}
+	if (e.type == "CAMERA_MoveDown") {
+		setOrigin(Coordinate(origin.x, origin.y+1));
+	}
+	if (e.type == "CAMERA_MoveRight") {
+		setOrigin(Coordinate(origin.x+1, origin.y));
+	}
+	if (e.type == "CAMERA_MoveLeft") {
+		setOrigin(Coordinate(origin.x-1, origin.y));
+	}
+	if (e.type == "CAMERA_Move") {
+		SpylikeEvents::CameraEvent& ce = dynamic_cast<SpylikeEvents::CameraEvent&>(e);
+		setOrigin(ce.pos);
 	}
 }
 	
