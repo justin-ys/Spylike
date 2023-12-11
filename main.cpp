@@ -5,7 +5,7 @@
 extern SpylikeLogger LOGGER("log.txt", DEBUG);
 
 int main() {
-	Game::run();
-	//run();
+	GameManager manager;
+	manager.run();
 	return 0;
 }

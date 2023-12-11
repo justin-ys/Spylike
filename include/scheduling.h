@@ -17,10 +17,15 @@ class ScheduledTask {
 
 class FrameScheduler {
 	int maxFPS;
-	std::vector<std::shared_ptr<ScheduledTask>> tasks;
+	std::vector<std::unique_ptr<ScheduledTask>> tasks;
 	bool runningSignal;
 	public:
-		FrameScheduler(std::vector<std::shared_ptr<ScheduledTask>> tasks, int maxFPS);
+		FrameScheduler(int maxFPS=60) : maxFPS{maxFPS} {
+			runningSignal = false;
+		}
+		void addTask(std::unique_ptr<ScheduledTask> t) {
+			tasks.push_back(std::move(t));
+		}
 		void run();
 		void pause();
 		void resume();

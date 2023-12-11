@@ -7,6 +7,10 @@
 
 extern SpylikeLogger LOGGER;
 
+void Player::on_init() {
+	eventManager->subscribe(shared_from_this(), "INPUT_KeyPress");
+}
+
 void Player::on_event(Event& e) {
 	if (e.type == "INPUT_KeyPress") {
 		SpylikeEvents::KeyInputEvent& ke = dynamic_cast<SpylikeEvents::KeyInputEvent&>(e);
@@ -63,7 +67,6 @@ void Player::on_update() {
 			}
 			hurtTimer.tick();
 			if (hurtTimer.getElapsed() == 15) state = PState::Idle;
-			LOGGER.log(health, DEBUG);
 			break;
 		}
 	}
@@ -91,14 +94,14 @@ void Goblin::on_update() {
 		}
 		case (GobState::Found): {
 			seekTimer.tick();
-			if (seekTimer.getElapsed() > 9) {
+			if (seekTimer.getElapsed() > 12) {
 				state = GobState::Pursue;
 				seekTimer.reset();
 			}
 			break;
 		}
 		case (GobState::Pursue): {
-			if (seekTimer.getElapsed() >= 7) {
+			if (seekTimer.getElapsed() >= 12) {
 				seekTimer.reset();
 				std::vector<std::shared_ptr<Player>> res = world->findEntities<Player>(getPos(), 15);
 				if (res.size() > 0) {
@@ -110,7 +113,7 @@ void Goblin::on_update() {
 					if (player->getPos().x < getPos().x) xDir = -1;
 					else xDir = 1;
 					Coordinate newPos(getPos().x + xDir, getPos().y + yDir);
-					world->moveEntity(getID(), newPos);
+					if (world->isInMap(newPos)) world->moveEntity(getID(), newPos);
 				}
 				else state = GobState::Idle;
 			}

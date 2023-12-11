@@ -1,5 +1,5 @@
 CXX=g++
-CPPFLAGS=-std=c++11 -Iinclude -Igame/include
+CPPFLAGS=-std=c++2a -Iinclude -Igame/include
 LDLIBS=
 OBJS=graphics/*.cpp logging/*.cpp models/*.cpp level/*.cpp game/*.cpp game/entities/*.cpp game/UI/*.cpp util/*.cpp main.cpp
 VER=vA1
@@ -33,7 +33,7 @@ build: build-pdcurses
 build: $(OBJS)
 	$(CXX) $(CPPFLAGS) -o Spylike-$(VER) $(OBJS) $(LDLIBS)
 
-debug: CPPFLAGS+= -g
+debug: CPPFLAGS+= -g -O0
 debug: build
 
 build-pdcurses:

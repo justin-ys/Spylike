@@ -108,7 +108,7 @@ LevelMap::LevelMap(int width, int height, std::shared_ptr<EventManager> eventMan
 int LevelMap::getTileIndex(Coordinate coord) {
 	int tileIndex = coord.x + coord.y*width;
 	if (tileIndex > tileMap.size() - 1) {
-		throw std::invalid_argument("Coordinate outside of map");
+		throw std::invalid_argument("Coordinate (" + std::to_string(coord.x) + "," + std::to_string(coord.y) +  ") outside of map.");
 	}
 	return tileIndex;
 }
@@ -257,7 +257,7 @@ int LevelMap::getNextID() {
 		
 void LevelMap::registerEntity(std::shared_ptr<TileEntity> ent, Coordinate pos) {
 	ent->registerWorld(shared_from_this());
-	ent->registerEventManager(manager);
+	ent->init(manager);
 	ent->setID(getNextID());
 	trackedEntities.insert({ent->getID(), pos});
 	putEntity(ent, pos);

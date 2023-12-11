@@ -21,8 +21,8 @@ NcursesTerminalScreen::NcursesTerminalScreen(int w, int h) {
 
 void NcursesTerminalScreen::write(int x, int y, char c) {
 	assert(x <= width);
-    assert(y <= height);
-    mvwaddch(win, y, x, c);
+	assert(y <= height);
+	mvwaddch(win, y, x, c);
 	wrefresh(win);
 }
 

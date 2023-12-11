@@ -48,6 +48,7 @@ class EventManager {
 	public:
 		void subscribe(std::shared_ptr<EventHandler> handler, std::string eventType);
 		void emit(Event& event);
+		void clear() { eventSubscribers = {}; }
 };
 	
 #endif

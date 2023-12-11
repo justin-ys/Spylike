@@ -22,6 +22,7 @@ class Player : public Character {
 	Sprite hurtSprite{hurtFrames, 1};
 	void on_event(Event& e) override;
 	void on_update() override;
+	void on_init() override;
 	void draw(GeometryRenderer& painter) override;
 	void on_collide(std::shared_ptr<TileEntity> collider) override;
 	public:

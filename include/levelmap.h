@@ -102,5 +102,12 @@ class LevelMap : public std::enable_shared_from_this<LevelMap> {
 		void registerEntity(std::shared_ptr<TileEntity> ent, Coordinate pos);
 };
 
+struct Level {
+	WorldType worldType;
+	int width;
+	int height;
+	std::map<std::shared_ptr<TileEntity>, Coordinate> entities;
+	Level(WorldType wt, int w, int h, std::map<std::shared_ptr<TileEntity>, Coordinate> entities) : worldType{wt}, width{w}, height{h}, entities{entities} {}
+};
 
 #endif
