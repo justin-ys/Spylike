@@ -3,9 +3,13 @@
 
 #include "objects.h"
 #include "rendering.h"
+#include "logger.h"
 #include <map>
 #include <vector>
 #include <memory>
+#include <cmath>
+
+extern SpylikeLogger LOGGER;
 
 class Tile;
 class TileEntity;
@@ -77,6 +81,18 @@ class LevelMap : public std::enable_shared_from_this<LevelMap> {
 		void drawTile(Coordinate coord, GeometryRenderer& painter);
 		void destroyTile(Coordinate coord);
 		std::shared_ptr<TileEntity> findEntity(int entityID);
+		// Searches for entities of type Ent within range tiles of origin and returns them. If range=0, searches everything
+		template<typename Ent> std::vector<std::shared_ptr<Ent>> findEntities(Coordinate origin=Coordinate(0,0), int range=0) {
+			std::vector<std::shared_ptr<Ent>> res;
+			for (auto entPair : trackedEntities) {
+				if ((range <= 0) || (sqrt(pow(origin.x - entPair.second.x, 2) + pow(origin.y - entPair.second.y, 2)) <= range)) {
+					std::shared_ptr<TileEntity> ent = findEntity(entPair.first);
+					std::shared_ptr<Ent> specialized = std::dynamic_pointer_cast<Ent>(ent);
+					if (specialized) res.push_back(std::dynamic_pointer_cast<Ent>(ent));
+				}
+			}
+			return res;
+		}
 		void putEntity(std::shared_ptr<TileEntity> ent, Coordinate coord);
 		void removeEntity(std::shared_ptr<TileEntity> ent);
 		// Returns true if entity successfully moved, false otherwise (e.g. collision)

@@ -6,6 +6,7 @@
 #include <memory>
 #include <map>
 #include <algorithm>
+#include <type_traits>
 
 extern SpylikeLogger LOGGER;
 
