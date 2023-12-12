@@ -13,6 +13,7 @@
 #include "character.h"
 #include "obstacle.h"
 #include "game.h"
+#include "geometry.h"
 #include <vector>
 #include <string>
 #include <memory>
@@ -66,7 +67,8 @@ void GameManager::run() {
 	GeometryRenderer theRenderer = GeometryRenderer(*camera);
 	renderer = &theRenderer;
 
-	std::map<std::shared_ptr<TileEntity>, Coordinate> entities = {{std::make_shared<Player>(), Coordinate(4, 4)}, {std::make_shared<Goblin>(), Coordinate(1,1)}};
+	std::map<std::shared_ptr<TileEntity>, Coordinate> entities = {{std::make_shared<Player>(), Coordinate(4, 4)}, {std::make_shared<Goblin>(), Coordinate(1,1)},
+		{std::make_shared<Wall>(), Coordinate(3, 3)}, {std::make_shared<Wall>(), Coordinate(4, 3)}, {std::make_shared<Wall>(), Coordinate(5, 3)}, {std::make_shared<Wall>(), Coordinate(3, 4)}};
 	Level level = Level(WorldType::Platform, 60, 20, entities);
 	loadLevel(level);
 

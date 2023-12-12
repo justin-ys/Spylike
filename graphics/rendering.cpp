@@ -7,6 +7,7 @@
 #include <iostream>
 #include <stdlib.h>
 #include <algorithm>
+#include <cuchar>
 
 extern SpylikeLogger LOGGER;
 
@@ -22,8 +23,7 @@ TextRenderManager::TextRenderManager(TerminalScreen& scr, std::vector<RenderLaye
         layersCache.insert({layer.name, layercells}); // Create blank layer in cache so we don't have to worry about initalizing it later
     }
 }
-    
-    
+
 void TextRenderManager::draw(Coordinate coord, char c, std::string layerName) {
     assert(find(orderedLayers.begin(), orderedLayers.end(), layerName) != orderedLayers.end());
     TextLayer& layer = layersCache[layerName];

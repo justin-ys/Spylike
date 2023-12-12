@@ -46,7 +46,7 @@ struct coordCompare : public std::binary_function<std::string, std::string, bool
 
 class TextRenderManager {
     TerminalScreen& screen;
-    typedef std::map<Coordinate, char, coordCompare> TextLayer;
+    typedef std::map<Coordinate, char16_t, coordCompare> TextLayer;
     std::map<std::string, TextLayer> layersCache;
     std::vector<std::string> orderedLayers;
     public:

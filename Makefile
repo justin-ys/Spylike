@@ -19,7 +19,7 @@ ifndef PDCURSES_BACKEND
 endif
 
 ifeq ($(USE_NCURSES), 1)
-	LDLIBS+= -lncurses
+	LDLIBS+= -lncursesw
 else
 	LDLIBS+= -Llib/bin -lpdcurses
     CPPFLAGS+= -Ilib/include
@@ -45,7 +45,7 @@ else # BEGIN PDCURSES BUILD BLOCK
 	cp lib/PDCurses/curses.h lib/include/curses.h
 	cp lib/PDCurses/panel.h lib/include/panel.h
     ifeq ($(PDCURSES_BACKEND), wincon)
-	    cd lib/PDCurses/wincon && $(MAKE)
+	    cd lib/PDCurses/wincon && $(MAKE) UTF8=Y WIDE=Y
 	    cp lib/PDCurses/wincon/pdcurses.a lib/bin/libpdcurses.a
     else ifeq ($(PDCURSES_BACKEND), x11)
 	    cd lib/PDCurses/x11 && ./configure
