@@ -25,11 +25,16 @@ TextRenderManager::TextRenderManager(TerminalScreen& scr, std::vector<RenderLaye
 }
 
 void TextRenderManager::draw(Coordinate coord, char c, std::string layerName) {
-    assert(find(orderedLayers.begin(), orderedLayers.end(), layerName) != orderedLayers.end());
-    TextLayer& layer = layersCache[layerName];
-    //LOGGER.log(std::to_string(coord.x), DEBUG);
-    layer[coord] = c;
-    //LOGGER.log("\n" + getSnapshot(), DEBUG);
+    if (!locked) {
+	    assert(find(orderedLayers.begin(), orderedLayers.end(), layerName) != orderedLayers.end());
+	    TextLayer& layer = layersCache[layerName];
+	    //LOGGER.log(std::to_string(coord.x), DEBUG);
+	    if (layer[coord] != c) {
+	    	layer[coord] = c;
+		//toUpdate[coord] = true;
+	    }
+	    //LOGGER.log("\n" + getSnapshot(), DEBUG);
+    }
 }
 
 void TextRenderManager::clearLayer(std::string layerName) {
@@ -55,11 +60,13 @@ void TextRenderManager::renderToScreen() {
                 Coordinate coord = node.first;
                 if (node.second != '\0') {
                     screen.write(coord.x, coord.y, node.second);
+		    //toUpdate.erase(coord);
                 }
         }
     }
 	//std::string canvas = getSnapshot();
 	//screen.write(0, 0, canvas);
+	screen.update();
 }
 
 std::string TextRenderManager::getSnapshot() {
@@ -102,7 +109,6 @@ GeometryRenderer::GeometryRenderer(TextRenderManager& renderManager) : manager(r
 
 void GeometryRenderer::draw(Coordinate coord, char c, std::string layerName) {
 	manager.draw(coord, c, layerName);
-	manager.renderToScreen();
 }
 
 void GeometryRenderer::drawString(Coordinate pos, std::string str, std::string layerName) {
@@ -115,7 +121,6 @@ void GeometryRenderer::drawString(Coordinate pos, std::string str, std::string l
 		manager.draw(currentPos, c, layerName);
 		currentPos.x += 1;
 	}
-	manager.renderToScreen();
 }
 		
 
@@ -149,7 +154,6 @@ void GeometryRenderer::drawLine(Coordinate p1, Coordinate p2, char c, std::strin
 		}
 		currentPos.x += signX;
 	}
-	manager.renderToScreen();
 }
 
 void GeometryRenderer::drawBox(Coordinate p1, Coordinate p2, std::string layerName) {

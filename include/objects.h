@@ -14,6 +14,7 @@ class Object : public EventHandler {
 		virtual void on_update() = 0;
 		virtual void on_init() {}
 		int ID = -1;
+		void registerEventManager(std::shared_ptr<EventManager> manager);
 	public:
 		void update() {
 			assert(eventManager);
@@ -30,7 +31,6 @@ class Object : public EventHandler {
 		}
 		void setID(int objID);
 		int getID();
-		void registerEventManager(std::shared_ptr<EventManager> manager);
 };
 
 class SpritedObject : public Object {

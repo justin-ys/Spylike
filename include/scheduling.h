@@ -33,6 +33,7 @@ class FrameScheduler {
 		void pauseTask(std::string taskID);
 		// should be starttask
 		void resumeTask(std::string taskID);
+		bool isRunning(std::string taskID);
 };
 		
 #endif

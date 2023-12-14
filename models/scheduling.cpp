@@ -55,3 +55,12 @@ void FrameScheduler::resumeTask(std::string taskID) {
 		}
 	}
 }
+
+bool FrameScheduler::isRunning(std::string taskID) {
+	for (auto& task : tasks) {
+		if (task->id == taskID) {
+			return task->running;
+		}
+	}
+	return false;
+}

@@ -43,6 +43,8 @@ void Player::on_event(Event& e) {
 				bool res = world->moveEntity(getID(), newPos);
 				if (res) eventManager->emit(ce);
 			}
+			Event ev("MENU_Show");
+			eventManager->emit(ev);
 		}
 	}
 }

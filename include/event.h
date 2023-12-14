@@ -36,6 +36,11 @@ namespace SpylikeEvents {
 		std::string buttonID;
 		MenuButtonEvent(std::string type, std::string buttonID) : Event(type), buttonID(buttonID) {}
 	};
+
+	struct MenuEvent : Event {
+		std::string menuID;
+		MenuEvent(std::string type, std::string menuID) : Event(type), menuID(menuID) {}
+	};
 }
 
 class EventHandler {
@@ -47,6 +52,7 @@ class EventManager {
 	std::map<std::string, std::vector<std::shared_ptr<EventHandler>>> eventSubscribers;
 	public:
 		void subscribe(std::shared_ptr<EventHandler> handler, std::string eventType);
+		void unsubscribe(std::shared_ptr<EventHandler> handler);
 		void emit(Event& event);
 		void clear() { eventSubscribers = {}; }
 };

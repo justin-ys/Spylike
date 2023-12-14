@@ -12,10 +12,12 @@ struct MouseEvent {
 
 class TerminalScreen {
     public:
-        int width;
-        int height;
+        const int width;
+        const int height;
+	TerminalScreen(int w, int h) : width{w}, height{h} {}
         virtual void write(int x, int y, char c) = 0;
         virtual void write(int x, int y, std::string s) = 0;
+	virtual void update() = 0;
         //virtual char* read(int x, int y) = 0; 
         virtual void clear() = 0;
         virtual void end() = 0;
@@ -25,10 +27,12 @@ class TerminalScreen {
 
 class NcursesTerminalScreen : public TerminalScreen {
     WINDOW* win;
+    WINDOW* inputWin;
     public:
         NcursesTerminalScreen(int w, int h);
         void write(int x, int y, char c);
         void write(int x, int y, std::string s);
+	void update();
         //char* read(int x, int y);
         char getInput();
         //MouseEvent getMouse();

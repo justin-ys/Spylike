@@ -1,6 +1,6 @@
 STANDARD EVENT TYPES
 
-Keyboard:
+Input:
 INPUT_KeyPress : Of type KeyInputEvent. For any keypress, emitted by InputManager.
 
 Graphics:
@@ -12,3 +12,7 @@ CAMERA_Move: Moves the camera to pos specified in CameraEvent.pos.
 
 Game:
 GAME_PlayerDeath: Emitted when the Player reaches 0 health (or some other death-causing event)
+MENU_Show: Shows the menu with id specified in MenuEvent.menuID
+MENU_Close: Closes any active menus
+MENU_ButtonClick: Calls when any button is clicked, ID given in MenuButtonEvent.buttonID
+	Standard button ID behaviors: Buttons with id "close" close the menu

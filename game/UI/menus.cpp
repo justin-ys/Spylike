@@ -2,15 +2,17 @@
 #include "rendering.h"
 #include "event.h"
 #include "logger.h"
+#include <curses.h>
 #include <string>
 #include <stdexcept>
+#include <memory>
 
 extern SpylikeLogger LOGGER;
 
-MenuButton::MenuButton(int width, int height, std::string buttonText, std::string buttonID) : TileEntity{false}, width{width}, height{height}, text{buttonText}, buttonID{buttonID} {}
+MenuButton::MenuButton(Coordinate pos, int width, int height, std::string buttonText, std::string buttonID) : pos{pos}, width{width}, height{height}, text{buttonText}, buttonID{buttonID} {}
 
 void MenuButton::click() {
-	auto ev = SpylikeEvents::MenuButtonEvent("ButtonClickEvent", buttonID);
+	auto ev = SpylikeEvents::MenuButtonEvent("MENU_ButtonClick", buttonID);
 	eventManager->emit(ev);
 }
 
@@ -25,11 +27,11 @@ void MenuButton::draw(GeometryRenderer& painter) {
 			drawnText = text.substr(0, width - 5) + "...";
 		}
 	}
-	Coordinate topLeft = Coordinate(tile->pos.x, tile->pos.y);
-	Coordinate bottomRight = Coordinate(tile->pos.x + width - 1, tile->pos.y + height - 1);
+	Coordinate topLeft = pos;
+	Coordinate bottomRight = Coordinate(pos.x + width - 1, pos.y + height - 1);
 	painter.drawBox(topLeft, bottomRight, "UI");
-	Coordinate drawOffset = Coordinate(width/2 - drawnText.length()/2 + tile->pos.x, 
-		height/2 + tile->pos.y);
+	Coordinate drawOffset = Coordinate(width/2 - drawnText.length()/2 + pos.x, 
+		height/2 + pos.y);
 	painter.drawString(drawOffset, drawnText, "UI");
 }
 
@@ -41,19 +43,21 @@ void MenuButton::on_event(Event& e) {}
 
 void MenuButton::on_update() {}
 
-
-void Menu::draw(GeometryRenderer& painter) {}
+void Menu::draw(GeometryRenderer& painter) {
+	Coordinate selectionPos = buttons.find(currentSelection)->second.pos;
+	Coordinate arrowPos = Coordinate(selectionPos.x + buttons.find(currentSelection)->second.width/2, selectionPos.y - 1);
+	painter.draw(arrowPos, 'v', "UI");
+	painter.draw(Coordinate(arrowPos.x, arrowPos.y-1), '|', "UI");
+	for (auto& buttonPair : buttons) {
+		buttonPair.second.draw(painter);
+	}
+}
 
 // pos is *relative* to menu
-void Menu::addButton(std::shared_ptr<MenuButton> button, Coordinate pos) {	
-	if (!tile) {
-		throw std::runtime_error("Menu must be registered before adding buttons");
-	}
-	buttons.insert({button->getButtonID(), button});
-	selectionList.push(button->getButtonID());
-	world->registerEntity(button, tile->pos + pos);
-	addChild(button);
-	currentSelection = button->getButtonID();
+void Menu::addButton(MenuButton button) {
+	buttons.insert({button.getButtonID(), button});
+	selectionList.push(button.getButtonID());
+	selectNext();
 }
 
 void Menu::setSelection(std::string buttonID) {
@@ -70,10 +74,46 @@ void Menu::selectNext() {
 
 void Menu::click() {
 	if (currentSelection != "") {
-		buttons[currentSelection]->click();
+		buttons.find(currentSelection)->second.click();
 	}
 }
 
-void Menu::on_event(Event& e) {}
+void Menu::on_event(Event& e) {
+	if (e.type == "INPUT_KeyPress") {
+		SpylikeEvents::KeyInputEvent& ke = dynamic_cast<SpylikeEvents::KeyInputEvent&>(e);
+		if (ke.c == ' ' || ke.c == KEY_ENTER) {
+			click();
+		}
+		else if (ke.c == 'w' || ke.c == 'a' || ke.c == 's' || ke.c == 'd') {
+			selectNext();
+		}
+	}
+}
 
-void Menu::on_update() {}
+void Menu::on_update() {
+	for (auto& buttonPair : buttons) {
+		buttonPair.second.update();
+	}
+}
+
+// must set ID before initalization
+void Menu::on_init() {
+	assert(ID != -1);
+	int nextID = ID+1;
+	for (auto& buttonPair : buttons) {
+		buttonPair.second.setID(nextID);
+		nextID++;	
+		buttonPair.second.init(eventManager);
+	}
+}
+
+namespace SpylikeMenus {
+	Menu testMenu() {
+		Menu menu(80, 40);
+		MenuButton button(Coordinate(4, 4), 10, 5, "hello!", "close");
+		MenuButton button2(Coordinate(25, 4), 10, 5, "world!", "testButton2");
+		menu.addButton(button);
+		menu.addButton(button2);
+		return menu;
+	}
+}

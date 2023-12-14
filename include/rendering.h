@@ -2,10 +2,11 @@
 #define SPYLIKE_RENDER_MANAGER_H
 
 #include "screen.h"
-#include <map>
+#include <unordered_map>
 #include <string>
 #include <vector>
 #include <tuple>
+#include <functional>
 
 struct Coordinate {
     int x; 
@@ -26,6 +27,9 @@ struct Coordinate {
 		int ny = y * c.y;
 		return Coordinate(nx, ny);
 	}
+	bool operator==(const Coordinate& c) const {
+		return ((x == c.x) && (y == c.y));
+	}
 };
 
 struct RenderLayer {
@@ -35,10 +39,10 @@ struct RenderLayer {
     RenderLayer(std::string name, int priority): name(name), priority(priority) {}
 };
   
-struct coordCompare : public std::binary_function<std::string, std::string, bool> {
+struct coordHash {
 	//TODO: literally stolen LMAO
-    bool operator()(const Coordinate& c1, const Coordinate& c2) const {
-    	return (c1.x < c2.x) || ((c1.x == c2.x) && (c1.y < c2.y));
+    std::size_t operator()(const Coordinate& c) const {
+    	return (std::hash<int>{}(c.x) ^ std::hash<int>{}(c.y));
 	}	
 };
 	
@@ -46,16 +50,20 @@ struct coordCompare : public std::binary_function<std::string, std::string, bool
 
 class TextRenderManager {
     TerminalScreen& screen;
-    typedef std::map<Coordinate, char16_t, coordCompare> TextLayer;
-    std::map<std::string, TextLayer> layersCache;
+    typedef std::unordered_map<Coordinate, char, coordHash> TextLayer;
+    std::unordered_map<std::string, TextLayer> layersCache;
+    //std::unordered_map<Coordinate, bool, coordHash> toUpdate;
     std::vector<std::string> orderedLayers;
+    bool locked = false;
     public:
         TextRenderManager(TerminalScreen& screen, std::vector<RenderLayer> layers);
         virtual void draw(Coordinate coord, char c, std::string layerName);
         void renderToScreen();
-		void clearLayer(std::string layerName);
+	void clearLayer(std::string layerName);
         void clearCache();
         void clearScreen();
+	void lock() { locked = true; } // prevents any new draws from taking effect - pauses the camera
+	void unlock() { locked = false; }
         int getScreenWidth();
         int getScreenHeight();
         std::string getSnapshot();
