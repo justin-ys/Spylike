@@ -18,6 +18,38 @@ void Player::on_event(Event& e) {
 	if (e.type == "INPUT_KeyPress") {
 		SpylikeEvents::KeyInputEvent& ke = dynamic_cast<SpylikeEvents::KeyInputEvent&>(e);
 		Coordinate pos = getPos();
+		if (state == PState::Idle && (ke.c == 'v' || ke.c == 'b' || ke.c == 'n' || ke.c == 'g')) {
+			Coordinate attackPos = pos;
+			switch(ke.c) {
+				case ('g'): {
+					attackPos.y--;
+					break;
+				}
+				case ('v'): {
+					attackPos.x--;
+					break;
+				}
+				case ('b'): {
+					attackPos.y++;
+					break;
+				}
+				case ('n'): {
+					attackPos.x++;
+				}
+			}
+			if (world->isInMap(attackPos)) {
+				std::shared_ptr<Tile> attackTile = world->getTile(attackPos);
+				if (attackTile) {
+					for (auto& entity : attackTile->getEntities()) {
+							std::shared_ptr<Character> character = std::dynamic_pointer_cast<Character>(entity);
+							if (character) character->hurt(20);
+					}
+				}
+				state = PState::Attacking;
+				attackLoc = attackPos;
+				attackTimer.reset();
+			}
+		}
 		if (world->worldType == WorldType::Roguelike) {
 			if (ke.c == 'w' || ke.c == 'a' || ke.c == 's' || ke.c == 'd') {
 				Coordinate newPos = pos;
@@ -50,23 +82,21 @@ void Player::on_event(Event& e) {
 		else {
 			if (ke.c == 'a' || ke.c == 'd') {
 				Coordinate newPos = pos;
-				SpylikeEvents::CameraEvent ce("CAMERA_MOVE");
 				switch(ke.c) {
 					case ('a'): {
 						newPos.x--;
-						ce = SpylikeEvents::CameraEvent("CAMERA_MoveLeft");
 						xVel = -1;
 						break;
 					}
 					case ('d'): {
 						newPos.x++;
 						xVel = 1;
-						ce = SpylikeEvents::CameraEvent("CAMERA_MoveRight");
 					}
 				}
 				if (world->isInMap(newPos)) {
 					bool res = world->moveEntity(getID(), newPos);
 					if (res) {
+						SpylikeEvents::CameraEvent ce("CAMERA_Move", newPos);
 						eventManager->emit(ce);
 						slideTimer.reset();
 					}
@@ -91,6 +121,10 @@ void Player::draw(GeometryRenderer& painter) {
 		hurtSprite.nextFrame();
 	}
 	else {
+		if (state == PState::Attacking) {
+			if (attackLoc.x != getPos().x) painter.draw(attackLoc, '-', "Effect");
+			else painter.draw(attackLoc, '|', "Effect");
+		}
 		painter.draw(getPos(), '@', "Entity");
 	}
 }
@@ -103,7 +137,11 @@ void Player::on_update() {
 			Coordinate newPos = Coordinate(getPos().x+xVel, getPos().y-1);
 			if (world->isInMap(newPos)) {
 				bool res = world->moveEntity(getID(), newPos);
-				if (res) yVel--;
+				if (res) {
+					yVel--;
+					SpylikeEvents::CameraEvent ce("CAMERA_MoveUp", newPos);
+					eventManager->emit(ce);
+				}
 			}
 			else yVel = 0;
 			slideTimer.reset();
@@ -139,6 +177,10 @@ void Player::on_update() {
 			hurtTimer.tick();
 			if (hurtTimer.getElapsed() == 15) state = PState::Idle;
 			break;
+		}
+		case(PState::Attacking): {
+			attackTimer.tick();
+			if (attackTimer.getElapsed() > 2) state = PState::Idle;
 		}
 	}
 }
@@ -187,12 +229,22 @@ void Goblin::on_update() {
 					else yDir = 1;
 					if (player->getPos().x < getPos().x) xDir = -1;
 					else xDir = 1;
+					if (world->worldType == WorldType::Platform) yDir = 0;
 					Coordinate newPos(getPos().x + xDir, getPos().y + yDir);
 					if (world->isInMap(newPos)) world->moveEntity(getID(), newPos);
 				}
 				else state = GobState::Idle;
 			}
 			seekTimer.tick();
+		}
+	}
+	if (world->worldType == WorldType::Platform) {
+		if (moveTimer.getElapsed() > 2) {
+			Coordinate below = Coordinate(getPos().x, getPos().y+1);
+			if (world->isInMap(below)) {
+				world->moveEntity(getID(), below);
+			}
+			moveTimer.reset();
 		}
 	}
 }
@@ -213,6 +265,8 @@ void Goblin::on_collide(std::shared_ptr<TileEntity> collider) {
 
 void Goblin::hurt(int damage) {
 	health -= damage;
+	LOGGER.log(health, DEBUG);
+	if (health <= 0) kill();
 }
 
 void Skeleton::draw(GeometryRenderer& painter) {
@@ -244,7 +298,7 @@ void Skeleton::on_update() {
 			}
 			std::shared_ptr<SkeletonArrow> arrow = std::make_shared<SkeletonArrow>(xVel, yVel);
 			arrow->init(eventManager);
-			world->registerEntity(arrow, Coordinate(getPos().x-1, getPos().y));
+			world->registerEntity(arrow, Coordinate(getPos().x+(xVel/100), getPos().y+(yVel/100)));
 		}
 		fireTimer.reset();
 	}

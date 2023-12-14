@@ -14,13 +14,15 @@ class Character : public TileEntity {
 };
 
 class Player : public Character {
-	enum PState { Idle, Hurt };
+	enum PState { Idle, Hurt, Attacking };
 	PState state = Idle;
 	Timer hurtTimer;
 	Timer moveTimer;
 	Timer slideTimer;
+	Timer attackTimer;
 	std::vector<SpriteFrame> hurtFrames{SpriteFrame{SpriteDelta(0, "")}, SpriteFrame{SpriteDelta(0, "@")}};
 	Sprite hurtSprite{hurtFrames, 1};
+	Coordinate attackLoc = Coordinate(0, 0);
 	int yVel = 0;
 	int xVel = 0;
 	void on_event(Event& e) override;
@@ -36,6 +38,7 @@ class Goblin : public Character {
 	enum GobState {Idle, Found, Pursue};
 	GobState state = Idle;
 	Timer seekTimer;
+	Timer moveTimer;
 	void on_event(Event& e) override {}
 	void on_update() override;
 	void draw(GeometryRenderer& painter) override;

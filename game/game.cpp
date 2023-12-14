@@ -77,6 +77,8 @@ void GameManager::loadLevel(Level level) {
 	eventManager->subscribe(shared_from_this(), "MENU_ButtonClick");
 	eventManager->subscribe(shared_from_this(), "LEVEL_Change");
 	eventManager->subscribe(shared_from_this(), "GAME_PlayerHurt");
+	eventManager->subscribe(shared_from_this(), "GAME_KeyCollect");
+	eventManager->subscribe(shared_from_this(), "GAME_DoorRequest");
 	IDBlock idAllocation = {0, 1024};
 	map = std::make_shared<LevelMap>(level.width, level.height, eventManager, idAllocation, level.worldType);
 	for (auto entPair : level.entities) {
@@ -120,7 +122,7 @@ void GameManager::on_event(Event& e) {
 	if (e.type == "MENU_ButtonClick") {
 		SpylikeEvents::MenuButtonEvent& mb = dynamic_cast<SpylikeEvents::MenuButtonEvent&>(e);
 		if (mb.buttonID == "close") closeMenu();
-		if (mb.buttonID == "restart") loadLevel(load_from_file("game/resource/levels/1-1.spm"));
+		if (mb.buttonID == "restart") {closeMenu(); loadLevel(load_from_file("game/resource/levels/1-1.spm"));}
 		if (mb.buttonID == "quit") quit();
 	}
 	if (e.type == "LEVEL_Change") {
@@ -138,6 +140,13 @@ void GameManager::on_event(Event& e) {
 		SpylikeEvents::PlayerHurtEvent& ph = dynamic_cast<SpylikeEvents::PlayerHurtEvent&>(e);
 		playerHealth = ph.health;
 		if (playerHealth <= 0) showMenu(SpylikeMenus::gameOver());
+	}
+	if (e.type == "GAME_KeyCollect") {
+		keyCollected = true;
+	}
+	if (e.type == "GAME_DoorRequest") {
+		SpylikeEvents::DoorResponseEvent ev("GAME_DoorResponse", keyCollected);
+		eventManager->emit(ev);
 	}
 }
 

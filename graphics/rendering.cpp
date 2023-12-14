@@ -26,14 +26,16 @@ TextRenderManager::TextRenderManager(TerminalScreen& scr, std::vector<RenderLaye
 
 void TextRenderManager::draw(Coordinate coord, char c, std::string layerName) {
     if (!locked) {
-	    assert(find(orderedLayers.begin(), orderedLayers.end(), layerName) != orderedLayers.end());
-	    TextLayer& layer = layersCache[layerName];
-	    //LOGGER.log(std::to_string(coord.x), DEBUG);
-	    if (layer[coord] != c) {
-	    	layer[coord] = c;
-		//toUpdate[coord] = true;
+	    if (coord.x <= screen.width && coord.y <= screen.height) {
+		    assert(find(orderedLayers.begin(), orderedLayers.end(), layerName) != orderedLayers.end());
+		    TextLayer& layer = layersCache[layerName];
+		    //LOGGER.log(std::to_string(coord.x), DEBUG);
+		    if (layer[coord] != c) {
+		    	layer[coord] = c;
+			//toUpdate[coord] = true;
+		    }
+		    //LOGGER.log("\n" + getSnapshot(), DEBUG);
 	    }
-	    //LOGGER.log("\n" + getSnapshot(), DEBUG);
     }
 }
 
@@ -114,7 +116,7 @@ void GeometryRenderer::draw(Coordinate coord, char c, std::string layerName) {
 void GeometryRenderer::drawString(Coordinate pos, std::string str, std::string layerName) {
 	Coordinate currentPos = pos;
 	for (const char& c : str) {
-		if (c == '\n' || currentPos.x > manager.getScreenWidth()) {
+		if (c == '\n') {
 			currentPos.y += 1;
 			currentPos.x = pos.x;
 		}

@@ -51,6 +51,11 @@ namespace SpylikeEvents {
 		int health;
 		PlayerHurtEvent(std::string type, int health) : Event(type), health(health) {}
 	};
+
+	struct DoorResponseEvent : Event {
+		bool res;
+		DoorResponseEvent(std::string type, bool res) : Event(type), res(res) {}
+	};
 }
 
 class EventHandler {

@@ -18,3 +18,6 @@ MENU_Close: Closes any active menus
 MENU_ButtonClick: Calls when any button is clicked, ID given in MenuButtonEvent.buttonID
 	Standard button ID behaviors: Buttons with id "close" close the menu
 LEVEL_change: Changes the level to LevelChangeEvent.levelPath
+GAME_KeyCollect: The key for the final boss door was collected.
+GAME_DoorRequest: Event for the door to check whether it can be opened.
+GAME_DoorResponse: Response from the game manager about GAME_DoorRequest, result in bool DoorResponse.result.

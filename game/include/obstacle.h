@@ -2,14 +2,26 @@
 #define SPYLIKE_OBSTACLE_H
 
 #include "levelmap.h"
+#include "timer.h"
 
 class Lava : public TileEntity {
 	void on_event(Event& e) override {}
 	void on_update() override;
 	void draw(GeometryRenderer& painter) override;
 	void on_collide(std::shared_ptr<TileEntity> collider) override;
+	int count = 0;
+	Timer moveTimer;
 	public:
 		Lava() : TileEntity(true) {}
+};
+
+class LavaGenerator : public TileEntity {
+	void on_event(Event& e) override {}
+	void on_update() override;
+	void draw(GeometryRenderer& painter) override;
+	void on_collide(std::shared_ptr<TileEntity> collider) override;
+	public:
+		LavaGenerator() : TileEntity(true) {}
 };
 
 class Spike : public TileEntity {

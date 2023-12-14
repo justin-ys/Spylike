@@ -38,7 +38,10 @@ void Camera::toggleAbsolute() {
 
 void Camera::on_event(Event& e) {
 	if (e.type == "CAMERA_MoveUp") {
-		setOrigin(Coordinate(origin.x, origin.y-1));
+		SpylikeEvents::CameraEvent& ce = dynamic_cast<SpylikeEvents::CameraEvent&>(e);
+		if ((origin.y - ce.pos.y)  < 5) {
+			//setOrigin(ce.pos);
+		}
 	}
 	if (e.type == "CAMERA_MoveDown") {
 		setOrigin(Coordinate(origin.x, origin.y+1));

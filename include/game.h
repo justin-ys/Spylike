@@ -51,6 +51,9 @@ inline Level load_from_file(std::string path) {
 		else if (name == "Goblin") ent = std::make_shared<Goblin>();
 		else if (name == "Spike") ent = std::make_shared<Spike>();
 		else if (name == "Skeleton") ent = std::make_shared<Skeleton>();
+		else if (name == "Lava") ent = std::make_shared<LavaGenerator>();
+		else if (name == "Key") ent = std::make_shared<Key>();
+		else if (name == "Door") ent = std::make_shared<Door>();
 		else ent = std::make_shared<Wall>();
 		idx++;
 		std::string entXStr;
@@ -96,6 +99,7 @@ class GameManager : public EventHandler, public std::enable_shared_from_this<Gam
 	std::shared_ptr<Menu> activeMenu;
 	std::shared_ptr<LevelMap> map;
 	int playerHealth = 100;
+	bool keyCollected = false;
 	class RunLevelTask : public ScheduledTask {
 		GameManager& manager;
 		public:
