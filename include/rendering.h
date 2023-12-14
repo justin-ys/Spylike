@@ -30,6 +30,9 @@ struct Coordinate {
 	bool operator==(const Coordinate& c) const {
 		return ((x == c.x) && (y == c.y));
 	}
+	bool operator!=(const Coordinate& c) const {
+		return ((x != c.x) || (y != c.y));
+	}
 };
 
 struct RenderLayer {

@@ -18,9 +18,11 @@ class Player : public Character {
 	PState state = Idle;
 	Timer hurtTimer;
 	Timer moveTimer;
+	Timer slideTimer;
 	std::vector<SpriteFrame> hurtFrames{SpriteFrame{SpriteDelta(0, "")}, SpriteFrame{SpriteDelta(0, "@")}};
 	Sprite hurtSprite{hurtFrames, 1};
 	int yVel = 0;
+	int xVel = 0;
 	void on_event(Event& e) override;
 	void on_update() override;
 	void on_init() override;
@@ -41,4 +43,30 @@ class Goblin : public Character {
 	public:
 		void hurt(int damage) override;
 };
+
+class Skeleton : public Character {
+	Timer fireTimer;
+	void on_event(Event& e) override {}
+	void on_update() override;
+	void draw(GeometryRenderer& painter) override;
+	void on_collide(std::shared_ptr<TileEntity> collider) override;
+	public:
+		void hurt(int damage) override;
+};
+
+class SkeletonArrow : public TileEntity {
+	void on_event(Event& e) override {}
+	void on_update() override;
+	void draw(GeometryRenderer& painter) override;
+	void on_collide(std::shared_ptr<TileEntity> collider) override;
+	Timer moveTimer;
+	Coordinate initialPos;
+	int xFlag=0;
+	int yFlag=0;
+	int xVel;
+	int yVel;
+	public:
+		SkeletonArrow(int xVel, int yVel) : TileEntity(true), xVel{xVel}, yVel{yVel} {}
+};
+	
 #endif

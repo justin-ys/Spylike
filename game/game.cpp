@@ -27,8 +27,8 @@ void GameManager::RunLevelTask::update() {
 	Coordinate origin = manager.camera->getOrigin();
 	int yOff = manager.camera->getYOffset();
 	int xOff = manager.camera->getXOffset();
-	for (int y=(origin.y+yOff); y>(origin.y+yOff-manager.camera->getScreenHeight()); y--) {
-		for (int x=(origin.x-xOff); x<(origin.x-xOff+manager.camera->getScreenWidth()); x++) {
+	for (int y=(origin.y+yOff); y>(origin.y+yOff-(2*manager.camera->getScreenHeight())); y--) {
+		for (int x=(origin.x-xOff); x<(origin.x-xOff+(2*manager.camera->getScreenWidth())); x++) {
 			if (manager.map->isInMap(Coordinate(x, y))) {
 				manager.map->updateTile(Coordinate(x, y));
 				manager.map->drawTile(Coordinate(x, y), *manager.gameRenderer);
@@ -65,6 +65,7 @@ void GameManager::quit() {
 }
 
 void GameManager::loadLevel(Level level) {
+	LOGGER.log("Loading level", DEBUG);
 	eventManager->clear();
 	eventManager->subscribe(camera, "CAMERA_MoveUp");
 	eventManager->subscribe(camera, "CAMERA_MoveDown");
@@ -157,7 +158,7 @@ void GameManager::run() {
 	GeometryRenderer theMenuRenderer = GeometryRenderer(*menuManager);
 	menuRenderer = &theMenuRenderer;
 
-	Level level = load_from_file("game/resource/levels/1-1.spm");
+	Level level = load_from_file("game/resource/levels/1-3.spm");
 	loadLevel(level);
 	
 	scheduler.addTask(std::make_unique<RunLevelTask>(*this));

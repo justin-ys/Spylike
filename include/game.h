@@ -11,6 +11,7 @@
 #include "menus.h"
 #include "geometry.h"
 #include "character.h"
+#include "obstacle.h"
 #include "logger.h"
 #include "misc.h"
 
@@ -21,6 +22,7 @@
 extern SpylikeLogger LOGGER;
 
 inline Level load_from_file(std::string path) {
+	LOGGER.log("Reading level from " + path, DEBUG);
 	std::ifstream input(path);
 	std::string levelTypeStr;
 	WorldType levelType;
@@ -47,6 +49,8 @@ inline Level load_from_file(std::string path) {
 		std::shared_ptr<TileEntity> ent;
 		if (name == "Player") ent = std::make_shared<Player>();
 		else if (name == "Goblin") ent = std::make_shared<Goblin>();
+		else if (name == "Spike") ent = std::make_shared<Spike>();
+		else if (name == "Skeleton") ent = std::make_shared<Skeleton>();
 		else ent = std::make_shared<Wall>();
 		idx++;
 		std::string entXStr;
@@ -60,7 +64,6 @@ inline Level load_from_file(std::string path) {
 		while (idx != entLine.length() && entLine[idx] != ' ') {
 			entYStr += entLine[idx];
 			idx++;
-			LOGGER.log(idx, DEBUG);
 		}
 		int entY = std::stoi(entYStr);
 		if (name == "LevelTrans") {

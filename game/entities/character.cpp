@@ -4,6 +4,7 @@
 #include "event.h"
 #include <algorithm>
 #include <memory>
+#include <stdlib.h>
 
 extern SpylikeLogger LOGGER;
 
@@ -54,16 +55,21 @@ void Player::on_event(Event& e) {
 					case ('a'): {
 						newPos.x--;
 						ce = SpylikeEvents::CameraEvent("CAMERA_MoveLeft");
+						xVel = -1;
 						break;
 					}
 					case ('d'): {
 						newPos.x++;
+						xVel = 1;
 						ce = SpylikeEvents::CameraEvent("CAMERA_MoveRight");
 					}
 				}
 				if (world->isInMap(newPos)) {
 					bool res = world->moveEntity(getID(), newPos);
-					if (res) eventManager->emit(ce);
+					if (res) {
+						eventManager->emit(ce);
+						slideTimer.reset();
+					}
 				}
 			}
 			else if (ke.c == 'w' || ke.c == ' ' && (yVel == 0)) {
@@ -92,21 +98,34 @@ void Player::draw(GeometryRenderer& painter) {
 void Player::on_update() {
 	if (world->worldType == WorldType::Platform) {
 		moveTimer.tick();
+		slideTimer.tick();
 		if (yVel > 0 && (moveTimer.getElapsed() > 3/yVel)) {
-			Coordinate newPos = Coordinate(getPos().x, getPos().y-1);
+			Coordinate newPos = Coordinate(getPos().x+xVel, getPos().y-1);
 			if (world->isInMap(newPos)) {
 				bool res = world->moveEntity(getID(), newPos);
 				if (res) yVel--;
 			}
 			else yVel = 0;
+			slideTimer.reset();
 			moveTimer.reset();
 		}
-		else if (moveTimer.getElapsed() > 2) {	
-			Coordinate below = Coordinate(getPos().x, getPos().y+1);
-			if (world->isInMap(below)) {
-				bool res = world->moveEntity(getID(), below);
+		else {
+			if (moveTimer.getElapsed() > 2) {
+				Coordinate below = Coordinate(getPos().x, getPos().y+1);
+				if (world->isInMap(below)) {
+					bool res = world->moveEntity(getID(), below);
+					if (res && slideTimer.getElapsed() > 2) {
+						Coordinate newPos = Coordinate(below.x+xVel, below.y);
+						bool res = world->moveEntity(getID(), newPos);
+						if (!res) xVel = 0;
+						slideTimer.reset();
+					}
+				}
+				moveTimer.reset();
 			}
-			moveTimer.reset();
+			if (slideTimer.getElapsed() > 5) {
+				xVel = 0;
+			}
 		}
 	}
 		
@@ -195,3 +214,77 @@ void Goblin::on_collide(std::shared_ptr<TileEntity> collider) {
 void Goblin::hurt(int damage) {
 	health -= damage;
 }
+
+void Skeleton::draw(GeometryRenderer& painter) {
+	painter.draw(getPos(), '&', "Entity");
+}
+
+void Skeleton::on_collide(std::shared_ptr<TileEntity> collider) {
+	std::shared_ptr<Player> player = std::dynamic_pointer_cast<Player>(collider);
+	if (player) {
+		player->hurt(10);
+	}
+}
+
+
+void Skeleton::on_update() {
+	fireTimer.tick();
+	if (fireTimer.getElapsed() > 20) {
+		std::vector<std::shared_ptr<Player>> res = world->findEntities<Player>(getPos(), 30);
+		if (res.size() > 0) {
+			std::shared_ptr<Player> player = res[0];
+			int xVel = 0;
+			if (player->getPos().x > getPos().x) xVel = 100;
+			else if (player->getPos().x < getPos().x) xVel = -100;
+			int yVel = 0;
+			if (player->getPos().y != getPos().y) {
+				int yDir = abs(player->getPos().y - getPos().y)/(player->getPos().y - getPos().y);
+				if (player->getPos().x != getPos().x) yVel = yDir*abs((xVel*(player->getPos().y - getPos().y))/(player->getPos().x - getPos().x));
+				else yVel = yDir;
+			}
+			std::shared_ptr<SkeletonArrow> arrow = std::make_shared<SkeletonArrow>(xVel, yVel);
+			arrow->init(eventManager);
+			world->registerEntity(arrow, Coordinate(getPos().x-1, getPos().y));
+		}
+		fireTimer.reset();
+	}
+}
+
+void Skeleton::hurt(int damage) {
+	health -= damage;
+}
+
+void SkeletonArrow::draw(GeometryRenderer& painter) {
+	painter.draw(getPos(), '#', "Entity");
+}
+
+void SkeletonArrow::on_update() {
+	moveTimer.tick();
+	if (moveTimer.getElapsed() > 2) {	
+		moveTimer.reset();
+		xFlag += xVel;
+		yFlag += yVel;
+		Coordinate newPos = getPos();
+		if (abs(xFlag) >= 100) {
+			newPos.x = newPos.x + abs(xVel)/xVel;
+			xFlag = 0;
+		}
+		if (abs(yFlag) >= 100) {
+			newPos.y = newPos.y + abs(yVel)/yVel;
+			yFlag = 0;
+		}
+		if (newPos != getPos()) {
+			if (world->isInMap(newPos)) world->moveEntity(getID(), newPos);
+			else kill();
+		}
+	}
+}
+
+void SkeletonArrow::on_collide(std::shared_ptr<TileEntity> collider) {
+	std::shared_ptr<Player> player = std::dynamic_pointer_cast<Player>(collider);
+	if (player) {
+		player->hurt(10);
+	}
+	kill();
+}
+

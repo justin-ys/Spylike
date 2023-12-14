@@ -118,6 +118,7 @@ std::shared_ptr<Tile> LevelMap::getTile(Coordinate coord) {
 }
 
 void LevelMap::putEntity(std::shared_ptr<TileEntity> ent, Coordinate coord) {
+	LOGGER.log("Adding entity " + std::to_string(ent->getID()) + " to coordinate (" + std::to_string(coord.x) + "," + std::to_string(coord.y) + ")", DEBUG);
 	if (tileMap[getTileIndex(coord)] != nullptr) {
 		tileMap[getTileIndex(coord)]->addEntity(ent);
 	}
@@ -165,6 +166,7 @@ std::shared_ptr<TileEntity> LevelMap::findEntity(int entityID) {
 }
 
 bool LevelMap::moveEntity(std::shared_ptr<TileEntity> ent, Coordinate pos) {
+	LOGGER.log("Moving entity " + std::to_string(ent->getID()) + " to coordinate (" + std::to_string(pos.x) + "," + std::to_string(pos.y) + ")", DEBUG);
 	if (ent) {
 		std::vector<std::shared_ptr<TileEntity>> movedChildren;
 		bool result = false;
@@ -182,7 +184,7 @@ bool LevelMap::moveEntity(std::shared_ptr<TileEntity> ent, Coordinate pos) {
 				for (auto occupier : targetTile->getEntities()) {
 					if (occupier->isCollidable) {
 						occupier->on_collide(ent);
-						ent->on_collide(occupier);
+						if (occupier->isAlive()) ent->on_collide(occupier);
 						foundCollidable = true;
 					
 					}
@@ -250,6 +252,7 @@ int LevelMap::getNextID() {
 			return chosenID;
 		}
 		else {
+			LOGGER.log("Ran out of IDs!", CRITICAL);
 			throw std::runtime_error("World has run out of its entityID allocation");
 		}
 	}
