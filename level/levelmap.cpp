@@ -257,9 +257,9 @@ int LevelMap::getNextID() {
 		
 void LevelMap::registerEntity(std::shared_ptr<TileEntity> ent, Coordinate pos) {
 	ent->registerWorld(shared_from_this());
-	ent->init(manager);
 	ent->setID(getNextID());
 	trackedEntities.insert({ent->getID(), pos});
 	putEntity(ent, pos);
+	ent->init(manager);
 }
 	

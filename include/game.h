@@ -9,6 +9,75 @@
 #include "input.h"
 #include "screen.h"
 #include "menus.h"
+#include "geometry.h"
+#include "character.h"
+#include "logger.h"
+#include "misc.h"
+
+#include <string>
+#include <iostream>
+#include <memory>
+
+extern SpylikeLogger LOGGER;
+
+inline Level load_from_file(std::string path) {
+	std::ifstream input(path);
+	std::string levelTypeStr;
+	WorldType levelType;
+	getline(input, levelTypeStr);
+	if (levelTypeStr == "Roguelike") levelType = WorldType::Roguelike;
+	else levelType = WorldType::Platform;
+	std::string widthStr;
+	std::string heightStr;
+	int width;	
+	int height;
+	getline(input, widthStr);	
+	getline(input, heightStr);
+	width = std::stoi(widthStr);
+	height = std::stoi(heightStr);
+	std::map<std::shared_ptr<TileEntity>, Coordinate> entities = {};
+	std::string entLine;
+	while (getline(input, entLine)) {
+		std::string name;
+		int idx = 0;
+		while(entLine[idx] != ' ') {
+			name += entLine[idx];
+			idx++;
+		}
+		std::shared_ptr<TileEntity> ent;
+		if (name == "Player") ent = std::make_shared<Player>();
+		else if (name == "Goblin") ent = std::make_shared<Goblin>();
+		else ent = std::make_shared<Wall>();
+		idx++;
+		std::string entXStr;
+		while (entLine[idx] != ',') {
+			entXStr += entLine[idx];
+			idx++;
+		}
+		int entX = std::stoi(entXStr);
+		idx++;
+		std::string entYStr;
+		while (idx != entLine.length() && entLine[idx] != ' ') {
+			entYStr += entLine[idx];
+			idx++;
+			LOGGER.log(idx, DEBUG);
+		}
+		int entY = std::stoi(entYStr);
+		if (name == "LevelTrans") {
+			while (entLine[idx] != ':') idx++;
+			idx++;
+			std::string levelPath;
+			while (idx < entLine.length() && entLine[idx] != ' ') {
+				levelPath += entLine[idx];
+				idx++;
+			}
+			levelPath = "game/resource/levels/" + levelPath + ".spm";
+			ent = std::make_shared<LevelTransition>(levelPath);
+		}
+		entities[ent] = Coordinate(entX, entY);
+	}
+	return Level(levelType, width, height, entities);
+}
 
 class GameManager : public EventHandler, public std::enable_shared_from_this<GameManager> {
 	bool paused;
@@ -23,6 +92,7 @@ class GameManager : public EventHandler, public std::enable_shared_from_this<Gam
 	GeometryRenderer* menuRenderer;
 	std::shared_ptr<Menu> activeMenu;
 	std::shared_ptr<LevelMap> map;
+	int playerHealth = 100;
 	class RunLevelTask : public ScheduledTask {
 		GameManager& manager;
 		public:

@@ -7,19 +7,20 @@
 #include "sprites.h"
 
 class Character : public TileEntity {
-	protected:
-		int health = 100;
 	public:
 		Character() : TileEntity(true) {}
 		virtual void hurt(int damage) = 0;
+		int health = 100; // should use hurt, but game manager needs to change it manually too
 };
 
 class Player : public Character {
 	enum PState { Idle, Hurt };
 	PState state = Idle;
 	Timer hurtTimer;
+	Timer moveTimer;
 	std::vector<SpriteFrame> hurtFrames{SpriteFrame{SpriteDelta(0, "")}, SpriteFrame{SpriteDelta(0, "@")}};
 	Sprite hurtSprite{hurtFrames, 1};
+	int yVel = 0;
 	void on_event(Event& e) override;
 	void on_update() override;
 	void on_init() override;

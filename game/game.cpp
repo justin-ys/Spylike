@@ -24,13 +24,22 @@ extern SpylikeLogger LOGGER;
 
 void GameManager::RunLevelTask::update() {
 	manager.camera->clearScreen();
-	for (int y=0; y<manager.map->height; y++) {
-		for (int x=0; x<manager.map->width; x++) {
-			manager.map->updateTile(Coordinate(x, y));
-			manager.map->drawTile(Coordinate(x, y), *manager.gameRenderer);
+	Coordinate origin = manager.camera->getOrigin();
+	int yOff = manager.camera->getYOffset();
+	int xOff = manager.camera->getXOffset();
+	for (int y=(origin.y+yOff); y>(origin.y+yOff-manager.camera->getScreenHeight()); y--) {
+		for (int x=(origin.x-xOff); x<(origin.x-xOff+manager.camera->getScreenWidth()); x++) {
+			if (manager.map->isInMap(Coordinate(x, y))) {
+				manager.map->updateTile(Coordinate(x, y));
+				manager.map->drawTile(Coordinate(x, y), *manager.gameRenderer);
+			}
 		}
 	}
-	manager.gameRenderer->drawBox(Coordinate(0, 0), Coordinate(manager.menuManager->getScreenWidth(), manager.menuManager->getScreenHeight()), "Overlay");
+	//manager.menuRenderer->drawBox(Coordinate(0, 0), Coordinate(manager.menuManager->getScreenWidth(), manager.menuManager->getScreenHeight()), "Overlay");
+	//manager.menuManager->renderToScreen();
+	manager.camera->toggleAbsolute();
+	manager.gameRenderer->drawString(Coordinate(0, 0), "Health: " + std::to_string(manager.playerHealth), "UI");
+	manager.camera->toggleAbsolute();
 	manager.camera->renderToScreen();
 	manager.inputManager->update();
 
@@ -42,7 +51,7 @@ void GameManager::MenuTask::update() {
 	manager.menuManager->clearScreen();
 	manager.activeMenu->draw(*manager.menuRenderer);
 	manager.activeMenu->update();
-	manager.menuRenderer->drawBox(Coordinate(0, 0), Coordinate(manager.menuManager->getScreenWidth(), manager.menuManager->getScreenHeight()), "Overlay");
+	manager.menuRenderer->drawBox(Coordinate(0, 0), Coordinate(manager.menuManager->getScreenWidth(), manager.menuManager->getScreenHeight()-1), "Overlay");
 	manager.menuManager->renderToScreen();
 	manager.menuInputManager->update();
 }
@@ -61,11 +70,19 @@ void GameManager::loadLevel(Level level) {
 	eventManager->subscribe(camera, "CAMERA_MoveDown");
 	eventManager->subscribe(camera, "CAMERA_MoveLeft");
 	eventManager->subscribe(camera, "CAMERA_MoveRight");
+	eventManager->subscribe(camera, "CAMERA_Move");
 	eventManager->subscribe(shared_from_this(), "MENU_Show");
+	eventManager->subscribe(shared_from_this(), "INPUT_KeyPress");
 	eventManager->subscribe(shared_from_this(), "MENU_ButtonClick");
+	eventManager->subscribe(shared_from_this(), "LEVEL_Change");
+	eventManager->subscribe(shared_from_this(), "GAME_PlayerHurt");
 	IDBlock idAllocation = {0, 1024};
-	map = std::make_shared<LevelMap>(level.width, level.height, eventManager, idAllocation);
+	map = std::make_shared<LevelMap>(level.width, level.height, eventManager, idAllocation, level.worldType);
 	for (auto entPair : level.entities) {
+		std::shared_ptr<Player> player = std::dynamic_pointer_cast<Player>(entPair.first);
+		if (player) {
+			player->health = playerHealth;
+		}
 		map->registerEntity(entPair.first, entPair.second);
 	}
 }
@@ -103,13 +120,29 @@ void GameManager::on_event(Event& e) {
 		SpylikeEvents::MenuButtonEvent& mb = dynamic_cast<SpylikeEvents::MenuButtonEvent&>(e);
 		if (mb.buttonID == "close") closeMenu();
 	}
+	if (e.type == "LEVEL_Change") {
+		SpylikeEvents::LevelChangeEvent& lc = dynamic_cast<SpylikeEvents::LevelChangeEvent&>(e);
+		Level level = load_from_file(lc.levelPath);
+		loadLevel(level);
+	}
+	if (e.type == "INPUT_KeyPress") {
+		SpylikeEvents::KeyInputEvent& ke = dynamic_cast<SpylikeEvents::KeyInputEvent&>(e);
+		if (ke.c == 27) {
+			showMenu(SpylikeMenus::pauseMenu());
+		}
+	}
+	if (e.type == "GAME_PlayerHurt") {
+		SpylikeEvents::PlayerHurtEvent& ph = dynamic_cast<SpylikeEvents::PlayerHurtEvent&>(e);
+		playerHealth = ph.health;
+	}
 }
 
 
 void GameManager::run() {
 	std::vector<RenderLayer> layers {RenderLayer("Entity", 1), RenderLayer("Effect", 2), RenderLayer("UI", 3), RenderLayer("Overlay", 4)};
-	NcursesTerminalScreen screen(80, 25);
-	camera = std::make_shared<Camera>(screen, 80, 25, layers);
+	NcursesTerminalScreen screen(80, 30);
+	camera = std::make_shared<Camera>(screen, 80, 30, layers);
+	camera->setOffset(30, 20);
 	menuManager = std::make_shared<TextRenderManager>(screen, layers);
 
 	eventManager = std::make_shared<EventManager>();
@@ -121,9 +154,7 @@ void GameManager::run() {
 	GeometryRenderer theMenuRenderer = GeometryRenderer(*menuManager);
 	menuRenderer = &theMenuRenderer;
 
-	std::map<std::shared_ptr<TileEntity>, Coordinate> entities = {{std::make_shared<Player>(), Coordinate(4, 4)}, {std::make_shared<Goblin>(), Coordinate(1,1)},
-		{std::make_shared<Wall>(), Coordinate(3, 3)}, {std::make_shared<Wall>(), Coordinate(4, 3)}, {std::make_shared<Wall>(), Coordinate(5, 3)}, {std::make_shared<Wall>(), Coordinate(3, 4)}};
-	Level level = Level(WorldType::Platform, 100, 50, entities);
+	Level level = load_from_file("game/resource/levels/1-1.spm");
 	loadLevel(level);
 	
 	scheduler.addTask(std::make_unique<RunLevelTask>(*this));

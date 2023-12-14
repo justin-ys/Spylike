@@ -41,6 +41,16 @@ namespace SpylikeEvents {
 		std::string menuID;
 		MenuEvent(std::string type, std::string menuID) : Event(type), menuID(menuID) {}
 	};
+
+	struct LevelChangeEvent : Event {
+		std::string levelPath;
+		LevelChangeEvent(std::string type, std::string levelPath) : Event(type), levelPath(levelPath) {}
+	};
+	
+	struct PlayerHurtEvent : Event {
+		int health;
+		PlayerHurtEvent(std::string type, int health) : Event(type), health(health) {}
+	};
 }
 
 class EventHandler {

@@ -11,16 +11,29 @@ Camera::Camera(TerminalScreen& screen, int width, int height, std::vector<Render
 }
 
 void Camera::setOrigin(Coordinate pos) {origin = pos;}
+void Camera::setOffset(int x, int y) {offsetX = x; offsetY = y;}
 
 Coordinate Camera::getOrigin() {return origin;}
 
 void Camera::draw(Coordinate coord, char c, std::string layerName) {
-	Coordinate cameraMapped(coord.x - origin.x, coord.y - origin.y);
-	if ((cameraMapped.x >= 0) && (cameraMapped.y >= 0)) {
-		if ((cameraMapped.x <= width) && (cameraMapped.y <= height)) {
-			TextRenderManager::draw(cameraMapped, c, layerName);
+	if (!absolute) {
+		Coordinate cameraMapped(coord.x - origin.x + offsetX, coord.y - origin.y + offsetY);
+		if ((cameraMapped.x >= 0) && (cameraMapped.y >= 0)) {
+			if ((cameraMapped.x <= width) && (cameraMapped.y <= height)) {
+				TextRenderManager::draw(cameraMapped, c, layerName);
+			}
 		}
 	}
+	else drawAbsolute(coord, c, layerName);
+}
+
+void Camera::drawAbsolute(Coordinate coord, char c, std::string layerName) {
+	TextRenderManager::draw(coord, c, layerName);
+}
+
+void Camera::toggleAbsolute() {
+	if (absolute) absolute = false;
+	else absolute = true;
 }
 
 void Camera::on_event(Event& e) {

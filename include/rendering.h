@@ -40,13 +40,11 @@ struct RenderLayer {
 };
   
 struct coordHash {
-	//TODO: literally stolen LMAO
     std::size_t operator()(const Coordinate& c) const {
     	return (std::hash<int>{}(c.x) ^ std::hash<int>{}(c.y));
 	}	
 };
 	
-
 
 class TextRenderManager {
     TerminalScreen& screen;

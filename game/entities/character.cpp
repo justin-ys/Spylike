@@ -131,6 +131,8 @@ void Player::on_collide(std::shared_ptr<TileEntity> collider) {
 void Player::hurt(int damage) {
 	if (state != PState::Hurt) {
 		health -= damage;
+		SpylikeEvents::PlayerHurtEvent ev("GAME_PlayerHurt", health);
+		eventManager->emit(ev);
 		state = PState::Hurt;
 		hurtTimer.reset();
 	}

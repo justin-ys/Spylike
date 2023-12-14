@@ -44,6 +44,7 @@ class Menu : public SpritedObject {
 
 namespace SpylikeMenus {
 	Menu testMenu();
+	Menu pauseMenu();
 }
 
 #endif
