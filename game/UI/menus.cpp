@@ -126,9 +126,11 @@ namespace SpylikeMenus {
 	}
 	Menu gameOver() {
 		Menu menu(80, 40);
-		Menu menu(80, 40);
 		MenuButton button(Coordinate(12, 10), 15, 5, "Start over", "restart");
 		MenuButton button2(Coordinate(45, 10), 15, 5, "Quit", "quit");
+		menu.addButton(button);
+		menu.addButton(button2);
+		return menu;
 	}
 }
 
