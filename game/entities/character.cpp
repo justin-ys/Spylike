@@ -9,42 +9,72 @@ extern SpylikeLogger LOGGER;
 
 void Player::on_init() {
 	eventManager->subscribe(shared_from_this(), "INPUT_KeyPress");
+	SpylikeEvents::CameraEvent ce("CAMERA_Move", getPos());
+	eventManager->emit(ce);
 }
 
 void Player::on_event(Event& e) {
 	if (e.type == "INPUT_KeyPress") {
 		SpylikeEvents::KeyInputEvent& ke = dynamic_cast<SpylikeEvents::KeyInputEvent&>(e);
 		Coordinate pos = getPos();
-		if (ke.c == 'w' || ke.c == 'a' || ke.c == 's' || ke.c == 'd') {
-			Coordinate newPos = pos;
-			SpylikeEvents::CameraEvent ce("CAMERA_MOVE");
-			switch(ke.c) {
-				case ('w'): {
-					newPos.y--;
-					ce = SpylikeEvents::CameraEvent("CAMERA_MoveUp");
-					break;
+		if (world->worldType == WorldType::Roguelike) {
+			if (ke.c == 'w' || ke.c == 'a' || ke.c == 's' || ke.c == 'd') {
+				Coordinate newPos = pos;
+				switch(ke.c) {
+					case ('w'): {
+						newPos.y--;
+						break;
+					}
+					case ('a'): {
+						newPos.x--;
+						break;
+					}
+					case ('s'): {
+						newPos.y++;
+						break;
+					}
+					case ('d'): {
+						newPos.x++;
+					}
 				}
-				case ('a'): {
-					newPos.x--;
-					ce = SpylikeEvents::CameraEvent("CAMERA_MoveLeft");
-					break;
-				}
-				case ('s'): {
-					newPos.y++;
-					ce = SpylikeEvents::CameraEvent("CAMERA_MoveDown");
-					break;
-				}
-				case ('d'): {
-					newPos.x++;
-					ce = SpylikeEvents::CameraEvent("CAMERA_MoveRight");
+				if (world->isInMap(newPos)) {
+					bool res = world->moveEntity(getID(), newPos);
+					if (res) {
+						SpylikeEvents::CameraEvent ce("CAMERA_Move", newPos);
+						eventManager->emit(ce);
+					}
 				}
 			}
-			if (world->isInMap(newPos)) {
-				bool res = world->moveEntity(getID(), newPos);
-				if (res) eventManager->emit(ce);
+		}
+		else {
+			if (ke.c == 'a' || ke.c == 'd') {
+				Coordinate newPos = pos;
+				SpylikeEvents::CameraEvent ce("CAMERA_MOVE");
+				switch(ke.c) {
+					case ('a'): {
+						newPos.x--;
+						ce = SpylikeEvents::CameraEvent("CAMERA_MoveLeft");
+						break;
+					}
+					case ('d'): {
+						newPos.x++;
+						ce = SpylikeEvents::CameraEvent("CAMERA_MoveRight");
+					}
+				}
+				if (world->isInMap(newPos)) {
+					bool res = world->moveEntity(getID(), newPos);
+					if (res) eventManager->emit(ce);
+				}
 			}
-			Event ev("MENU_Show");
-			eventManager->emit(ev);
+			else if (ke.c == 'w' || ke.c == ' ' && (yVel == 0)) {
+				Coordinate below = Coordinate(pos.x, pos.y+1);
+				bool res = world->moveEntity(getID(), below);
+				if (!res) {
+					world->moveEntity(getID(), pos);
+					yVel = 6;
+					moveTimer.reset();
+				}
+			}
 		}
 	}
 }
@@ -60,6 +90,26 @@ void Player::draw(GeometryRenderer& painter) {
 }
 
 void Player::on_update() {
+	if (world->worldType == WorldType::Platform) {
+		moveTimer.tick();
+		if (yVel > 0 && (moveTimer.getElapsed() > 3/yVel)) {
+			Coordinate newPos = Coordinate(getPos().x, getPos().y-1);
+			if (world->isInMap(newPos)) {
+				bool res = world->moveEntity(getID(), newPos);
+				if (res) yVel--;
+			}
+			else yVel = 0;
+			moveTimer.reset();
+		}
+		else if (moveTimer.getElapsed() > 2) {	
+			Coordinate below = Coordinate(getPos().x, getPos().y+1);
+			if (world->isInMap(below)) {
+				bool res = world->moveEntity(getID(), below);
+			}
+			moveTimer.reset();
+		}
+	}
+		
 	switch(state) {
 		case(PState::Idle): { break; }
 		case(PState::Hurt): {
@@ -74,7 +124,9 @@ void Player::on_update() {
 	}
 }
 
-void Player::on_collide(std::shared_ptr<TileEntity> collider) {}
+void Player::on_collide(std::shared_ptr<TileEntity> collider) {
+	if (collider->getPos().y < getPos().y) yVel = 0;
+}
 
 void Player::hurt(int damage) {
 	if (state != PState::Hurt) {
@@ -96,14 +148,14 @@ void Goblin::on_update() {
 		}
 		case (GobState::Found): {
 			seekTimer.tick();
-			if (seekTimer.getElapsed() > 12) {
+			if (seekTimer.getElapsed() > 8) {
 				state = GobState::Pursue;
 				seekTimer.reset();
 			}
 			break;
 		}
 		case (GobState::Pursue): {
-			if (seekTimer.getElapsed() >= 12) {
+			if (seekTimer.getElapsed() >= 7) {
 				seekTimer.reset();
 				std::vector<std::shared_ptr<Player>> res = world->findEntities<Player>(getPos(), 15);
 				if (res.size() > 0) {
