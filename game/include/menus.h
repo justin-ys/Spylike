@@ -7,6 +7,7 @@
 #include <memory>
 #include <map>
 #include <queue>
+#include <memory>
 
 class MenuButton : public SpritedObject {
 	void on_update();
@@ -35,17 +36,36 @@ class Menu : public SpritedObject {
 	void on_init() override;
 	public:
 		Menu(int width, int height): width{width}, height{height} {}
-		void draw(GeometryRenderer& painter);
+		virtual void draw(GeometryRenderer& painter);
 		void addButton(MenuButton button);
 		void setSelection(std::string buttonID);
 		void selectNext();
 		void click();
 };
 
+class PauseMenu : public Menu {
+	public:
+		PauseMenu(int width, int height): Menu(width, height) {}
+		void draw(GeometryRenderer& painter) override;
+};
+
+class GameOverMenu : public Menu {
+	public:
+		GameOverMenu(int width, int height): Menu(width, height) {}
+		void draw(GeometryRenderer& painter) override;
+};
+
+class StartMenu : public Menu {
+	public:
+		StartMenu(int width, int height): Menu(width, height) {}
+		void draw(GeometryRenderer& painter) override;
+};
+
 namespace SpylikeMenus {
-	Menu testMenu();
-	Menu pauseMenu();
-	Menu gameOver();
+	std::shared_ptr<Menu> testMenu();
+	std::shared_ptr<Menu> pauseMenu();
+	std::shared_ptr<Menu> gameOver();
+	std::shared_ptr<Menu> startMenu();
 }
 
 #endif

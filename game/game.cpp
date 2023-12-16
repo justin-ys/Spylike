@@ -22,6 +22,12 @@
 
 extern SpylikeLogger LOGGER;
 
+std::string formatSeconds(int seconds) {
+	int minutes = seconds/60;
+	seconds = seconds - 60*minutes;
+	return std::to_string(minutes) + ":" + std::to_string(seconds);
+}
+
 void GameManager::RunLevelTask::update() {
 	manager.camera->clearScreen();
 	Coordinate origin = manager.camera->getOrigin();
@@ -39,6 +45,7 @@ void GameManager::RunLevelTask::update() {
 	//manager.menuManager->renderToScreen();
 	manager.camera->toggleAbsolute();
 	manager.gameRenderer->drawString(Coordinate(0, 0), "Health: " + std::to_string(manager.playerHealth), "UI");
+	manager.gameRenderer->drawString(Coordinate(0, 1), "Time elapsed: " + formatSeconds(manager.scheduler.timeElapsed()), "UI");
 	manager.camera->toggleAbsolute();
 	manager.camera->renderToScreen();
 	manager.inputManager->update();
@@ -55,6 +62,12 @@ void GameManager::MenuTask::update() {
 	manager.menuManager->renderToScreen();
 	manager.menuInputManager->update();
 }
+
+void GameManager::StartupTask::update() {
+	manager.showMenu(SpylikeMenus::startMenu(), true);
+	manager.scheduler.pauseTask("StartupTask");
+}
+
 
 void GameManager::pause() {
 	paused = true;
@@ -91,9 +104,9 @@ void GameManager::loadLevel(Level level) {
 }
 
 // Note: You must close any active menus, before showing a new one.
-void GameManager::showMenu(Menu menu, bool pause) {
+void GameManager::showMenu(std::shared_ptr<Menu> menu, bool pause) {
 	if (!scheduler.isRunning("MenuTask")) {
-		activeMenu = std::make_shared<Menu>(std::move(menu));
+		activeMenu = menu;
 		activeMenu->setID(1025);
 		activeMenu->init(eventManager);
 		menuEventManager->subscribe(activeMenu, "INPUT_KeyPress");
@@ -122,7 +135,7 @@ void GameManager::on_event(Event& e) {
 	if (e.type == "MENU_ButtonClick") {
 		SpylikeEvents::MenuButtonEvent& mb = dynamic_cast<SpylikeEvents::MenuButtonEvent&>(e);
 		if (mb.buttonID == "close") closeMenu();
-		if (mb.buttonID == "restart") {closeMenu(); loadLevel(load_from_file("game/resource/levels/1-1.spm"));}
+		if (mb.buttonID == "restart") {closeMenu(); playerHealth=100; keyCollected=false; loadLevel(load_from_file("game/resource/levels/1-6.spm"));}
 		if (mb.buttonID == "quit") quit();
 	}
 	if (e.type == "LEVEL_Change") {
@@ -173,6 +186,7 @@ void GameManager::run() {
 	scheduler.addTask(std::make_unique<RunLevelTask>(*this));
 	scheduler.addTask(std::make_unique<TickTask>(*this));
 	scheduler.addTask(std::make_unique<MenuTask>(*this));
+	scheduler.addTask(std::make_unique<StartupTask>(*this));
 	scheduler.pauseTask("MenuTask");
 	scheduler.run();
 }	

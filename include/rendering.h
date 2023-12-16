@@ -80,6 +80,8 @@ class GeometryRenderer {
 		void drawString(Coordinate pos, std::string str, std::string layerName);
 		void drawLine(Coordinate p1, Coordinate p2, char c, std::string layerName);
 		void drawBox(Coordinate p1, Coordinate p2, std::string layerName);
+		int getScreenWidth();
+		int getScreenHeight();
 };
 
 #endif

@@ -1,6 +1,17 @@
 Platform
 126
 31
+Wall 101,0
+Wall 102,0
+Wall 103,0
+Wall 104,0
+Wall 108,0
+Wall 101,1
+Wall 108,1
+Wall 100,2
+Wall 101,2
+Wall 107,2
+Wall 108,2
 Wall 44,3
 Wall 45,3
 Wall 46,3
@@ -15,6 +26,10 @@ Wall 54,3
 Wall 55,3
 Wall 56,3
 Wall 57,3
+Wall 99,3
+Wall 100,3
+Wall 106,3
+Wall 107,3
 Wall 36,4
 Wall 37,4
 Wall 38,4
@@ -67,20 +82,11 @@ Wall 96,4
 Wall 97,4
 Wall 98,4
 Wall 99,4
-Wall 100,4
-Wall 101,4
-Wall 102,4
-Wall 103,4
-Wall 104,4
-Wall 105,4
 Wall 106,4
-Wall 107,4
-Wall 108,4
-Wall 109,4
-Wall 110,4
 Wall 35,5
 Wall 36,5
-Wall 110,5
+Wall 104,5
+Wall 106,5
 Wall 12,6
 Wall 13,6
 Wall 14,6
@@ -105,7 +111,7 @@ Wall 32,6
 Wall 33,6
 Wall 34,6
 Wall 35,6
-Wall 110,6
+Wall 106,6
 Wall 4,7
 Wall 5,7
 Wall 6,7
@@ -115,22 +121,24 @@ Wall 9,7
 Wall 10,7
 Wall 11,7
 Wall 12,7
-Wall 110,7
+Wall 106,7
 Wall 3,8
 Wall 4,8
-Wall 110,8
+Wall 102,8
+Wall 103,8
+Wall 106,8
 Wall 3,9
-Wall 110,9
+Wall 106,9
 Wall 3,10
-Wall 110,10
+Wall 99,10
+Wall 100,10
+Wall 106,10
 Wall 3,11
-Key 106,11
-Wall 110,11
+Wall 106,11
 Wall 3,12
+Wall 104,12
 Wall 105,12
 Wall 106,12
-Wall 107,12
-Wall 110,12
 Wall 2,13
 Wall 3,13
 Wall 25,13
@@ -174,12 +182,6 @@ Wall 101,13
 Wall 102,13
 Wall 103,13
 Wall 104,13
-Wall 105,13
-Wall 106,13
-Wall 107,13
-Wall 108,13
-Wall 109,13
-Wall 110,13
 Wall 0,14
 Wall 1,14
 Wall 2,14
@@ -348,5 +350,8 @@ Wall 19,22
 Wall 20,22
 Wall 21,22
 LevelTrans 0,17 transition:1-4
-LevelTrans -1,16 transition:1-4
-LevelTrans -1,15 transition:1-4
+LevelTrans 0,17 transition:1-4
+LevelTrans 0,15 transition:1-4
+LevelTrans 104,1 transition:1-6
+LevelTrans 105,0 transition:1-6
+LevelTrans 106,1 transition:1-6

@@ -19,6 +19,7 @@ class FrameScheduler {
 	int maxFPS;
 	std::vector<std::unique_ptr<ScheduledTask>> tasks;
 	bool runningSignal;
+	int usElapsed=0;
 	public:
 		FrameScheduler(int maxFPS=60) : maxFPS{maxFPS} {
 			runningSignal = false;
@@ -34,6 +35,7 @@ class FrameScheduler {
 		// should be starttask
 		void resumeTask(std::string taskID);
 		bool isRunning(std::string taskID);
+		int timeElapsed(); // in seconds
 };
 		
 #endif

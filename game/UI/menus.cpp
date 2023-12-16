@@ -53,6 +53,36 @@ void Menu::draw(GeometryRenderer& painter) {
 	}
 }
 
+void PauseMenu::draw(GeometryRenderer& painter) {
+	/*
+	painter.drawString(Coordinate(1, 1), ""
+ "|||\n"
+"|   |\n"
+"|   |        ||         |      |    |||||   |||||||\n"
+"||||        |  |        |      |    |       |      \n"
+"|          ||||||       |      |    |||||   |||||||\n"
+"|         |      |      |      |        |   |      \n"
+"|        |        |      ||||||     |||||   |||||||\n", "UI");
+*/
+	painter.drawString(Coordinate(painter.getScreenWidth()/2-5, 1), "PAUSED!", "UI");
+	Menu::draw(painter);
+}
+
+void GameOverMenu::draw(GeometryRenderer& painter) {
+	painter.drawString(Coordinate(painter.getScreenWidth()/2-8, 1), "GAME OVER!", "UI");
+	Menu::draw(painter);
+}
+
+void StartMenu::draw(GeometryRenderer& painter) {
+	painter.drawString(Coordinate(painter.getScreenWidth()/2-12, 1), "WELCOME TO SPYLIKE!", "UI");	
+	painter.drawString(Coordinate(painter.getScreenWidth()/2-7, 2), "CONTROLS:", "UI");
+	painter.drawString(Coordinate(painter.getScreenWidth()/2-10, 3), "W,A,S,D MOVEMENT", "UI");
+	painter.drawString(Coordinate(painter.getScreenWidth()/2-9, 4), "V,B,N,G ATTACK", "UI");
+	painter.drawString(Coordinate(painter.getScreenWidth()/2-9, 4), "ESC PAUSE", "UI");
+	Menu::draw(painter);
+}
+
+
 // pos is *relative* to menu
 void Menu::addButton(MenuButton button) {
 	buttons.insert({button.getButtonID(), button});
@@ -108,30 +138,39 @@ void Menu::on_init() {
 }
 
 namespace SpylikeMenus {
-	Menu testMenu() {
+	std::shared_ptr<Menu> testMenu() {
 		Menu menu(80, 40);
 		MenuButton button(Coordinate(4, 4), 10, 5, "hello!", "close");
 		MenuButton button2(Coordinate(25, 4), 10, 5, "world!", "testButton2");
 		menu.addButton(button);
 		menu.addButton(button2);
-		return menu;
+		return std::make_shared<Menu>(menu);
 	}
-	Menu pauseMenu() {
-		Menu menu(80, 40);
+	std::shared_ptr<Menu> pauseMenu() {
+		PauseMenu menu(80, 40);
 		MenuButton button(Coordinate(12, 10), 15, 5, "Resume", "close");
 		MenuButton button2(Coordinate(45, 10), 15, 5, "Quit", "quit");
 		menu.addButton(button);
 		menu.addButton(button2);
-		return menu;
+		return std::make_shared<PauseMenu>(menu);
 	}
-	Menu gameOver() {
-		Menu menu(80, 40);
+	std::shared_ptr<Menu> gameOver() {
+		GameOverMenu menu(80, 40);
 		MenuButton button(Coordinate(12, 10), 15, 5, "Start over", "restart");
 		MenuButton button2(Coordinate(45, 10), 15, 5, "Quit", "quit");
 		menu.addButton(button);
 		menu.addButton(button2);
-		return menu;
+		return std::make_shared<GameOverMenu>(menu);
 	}
+	std::shared_ptr<Menu> startMenu() {
+		StartMenu menu(80, 40);
+		MenuButton button(Coordinate(12, 10), 15, 5, "Start game", "restart");
+		MenuButton button2(Coordinate(45, 10), 15, 5, "Quit", "quit");
+		menu.addButton(button);
+		menu.addButton(button2);
+		return std::make_shared<StartMenu>(menu);
+	}
+	
 }
 
 	

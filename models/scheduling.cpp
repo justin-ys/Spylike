@@ -21,6 +21,7 @@ void FrameScheduler::run() {
 					}
 			}
 			usleep(frameDelay);
+			usElapsed += frameDelay;
 		}
 	}
 	else {
@@ -63,4 +64,8 @@ bool FrameScheduler::isRunning(std::string taskID) {
 		}
 	}
 	return false;
+}
+
+int FrameScheduler::timeElapsed() {
+	return usElapsed/1000000;
 }

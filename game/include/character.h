@@ -39,6 +39,7 @@ class Goblin : public Character {
 	GobState state = Idle;
 	Timer seekTimer;
 	Timer moveTimer;
+	bool falling = false;
 	void on_event(Event& e) override {}
 	void on_update() override;
 	void draw(GeometryRenderer& painter) override;

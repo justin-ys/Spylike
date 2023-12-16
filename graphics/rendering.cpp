@@ -166,3 +166,11 @@ void GeometryRenderer::drawBox(Coordinate p1, Coordinate p2, std::string layerNa
 	drawLine(p2, p3, '-', layerName);
 	drawLine(p1, p4, '-', layerName);
 }
+
+int GeometryRenderer::getScreenWidth() {
+	return manager.getScreenWidth();
+}
+
+int GeometryRenderer::getScreenHeight() {
+	return manager.getScreenHeight();
+}

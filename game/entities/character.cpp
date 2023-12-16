@@ -42,7 +42,19 @@ void Player::on_event(Event& e) {
 				if (attackTile) {
 					for (auto& entity : attackTile->getEntities()) {
 							std::shared_ptr<Character> character = std::dynamic_pointer_cast<Character>(entity);
-							if (character) character->hurt(20);
+							if (character) {
+								character->hurt(20);
+								if (character->isAlive()) {
+									Coordinate newCharPos = character->getPos();
+									if (getPos().x < newCharPos.x) newCharPos.x++;
+									else if (getPos().x > newCharPos.x) newCharPos.x--;
+									else if (getPos().y > newCharPos.y) newCharPos.y--;
+									else newCharPos.y++;
+									if (world->isInMap(newCharPos)) {
+										world->moveEntity(character->getID(), newCharPos);
+									}
+								}
+							}
 					}
 				}
 				state = PState::Attacking;
@@ -242,7 +254,8 @@ void Goblin::on_update() {
 		if (moveTimer.getElapsed() > 2) {
 			Coordinate below = Coordinate(getPos().x, getPos().y+1);
 			if (world->isInMap(below)) {
-				world->moveEntity(getID(), below);
+				bool res = world->moveEntity(getID(), below);
+				falling = res;
 			}
 			moveTimer.reset();
 		}
@@ -252,6 +265,9 @@ void Goblin::on_update() {
 void Goblin::draw(GeometryRenderer& painter) {
 	if (state == GobState::Found) {
 		painter.draw(Coordinate(getPos().x, getPos().y-1), '!', "Effect");
+	}
+	if (falling) {
+		painter.draw(Coordinate(getPos().x, getPos().y-1), '?', "Effect");
 	}
 	painter.draw(getPos(), '$', "Entity");
 }
@@ -265,7 +281,6 @@ void Goblin::on_collide(std::shared_ptr<TileEntity> collider) {
 
 void Goblin::hurt(int damage) {
 	health -= damage;
-	LOGGER.log(health, DEBUG);
 	if (health <= 0) kill();
 }
 
@@ -283,8 +298,8 @@ void Skeleton::on_collide(std::shared_ptr<TileEntity> collider) {
 
 void Skeleton::on_update() {
 	fireTimer.tick();
-	if (fireTimer.getElapsed() > 20) {
-		std::vector<std::shared_ptr<Player>> res = world->findEntities<Player>(getPos(), 30);
+	if (fireTimer.getElapsed() > 30) {
+		std::vector<std::shared_ptr<Player>> res = world->findEntities<Player>(getPos(), 15);
 		if (res.size() > 0) {
 			std::shared_ptr<Player> player = res[0];
 			int xVel = 0;
@@ -296,9 +311,13 @@ void Skeleton::on_update() {
 				if (player->getPos().x != getPos().x) yVel = yDir*abs((xVel*(player->getPos().y - getPos().y))/(player->getPos().x - getPos().x));
 				else yVel = yDir;
 			}
-			std::shared_ptr<SkeletonArrow> arrow = std::make_shared<SkeletonArrow>(xVel, yVel);
-			arrow->init(eventManager);
-			world->registerEntity(arrow, Coordinate(getPos().x+(xVel/100), getPos().y+(yVel/100)));
+			Coordinate arrowPos = Coordinate(getPos().x+(xVel/100), getPos().y+(yVel/100));
+			auto tile = world->getTile(arrowPos);
+			if (!tile || tile->getEntities().size() == 0) {
+				std::shared_ptr<SkeletonArrow> arrow = std::make_shared<SkeletonArrow>(xVel, yVel);
+				arrow->init(eventManager);
+				world->registerEntity(arrow, arrowPos);
+			}
 		}
 		fireTimer.reset();
 	}

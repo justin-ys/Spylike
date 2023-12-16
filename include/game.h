@@ -118,12 +118,18 @@ class GameManager : public EventHandler, public std::enable_shared_from_this<Gam
 			MenuTask(GameManager& manager) : ScheduledTask("MenuTask"), manager{manager} {}
 			void update() override;
 	};
+	class StartupTask : public ScheduledTask {
+		GameManager& manager;
+		public:
+			StartupTask(GameManager& manager) : ScheduledTask("StartupTask"), manager{manager} {}
+			void update() override;
+	};
 	public:
 		void loadLevel(Level level);
 		void pause();
 		void quit();	
 		void run();
-		void showMenu(Menu menu, bool pause=true);
+		void showMenu(std::shared_ptr<Menu> menu, bool pause=true);
 		void closeMenu();
 		void on_event(Event& e) override;
 };
