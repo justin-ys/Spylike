@@ -135,7 +135,7 @@ void GameManager::on_event(Event& e) {
 	if (e.type == "MENU_ButtonClick") {
 		SpylikeEvents::MenuButtonEvent& mb = dynamic_cast<SpylikeEvents::MenuButtonEvent&>(e);
 		if (mb.buttonID == "close") closeMenu();
-		if (mb.buttonID == "restart") {closeMenu(); playerHealth=100; keyCollected=false; loadLevel(load_from_file("game/resource/levels/1-6.spm"));}
+		if (mb.buttonID == "restart") {closeMenu(); playerHealth=100; keyCollected=false; loadLevel(load_from_file("game/resource/levels/1-1.spm"));}
 		if (mb.buttonID == "quit") quit();
 	}
 	if (e.type == "LEVEL_Change") {
