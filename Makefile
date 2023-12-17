@@ -31,6 +31,7 @@ endif
 
 build: build-pdcurses
 build: $(OBJS)
+	cp lib/miniaudio/miniaudio.h lib/include/miniaudio.h
 	$(CXX) $(CPPFLAGS) -o Spylike-$(VER) $(OBJS) $(LDLIBS)
 
 debug: CPPFLAGS+= -g -O0

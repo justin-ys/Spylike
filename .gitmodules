@@ -1,3 +1,6 @@
 [submodule "lib/PDCurses"]
 	path = lib/PDCurses
 	url = https://github.com/wmcbrine/PDCurses.git
+[submodule "lib/miniaudio"]
+	path = lib/miniaudio
+	url = https://github.com/mackron/miniaudio
