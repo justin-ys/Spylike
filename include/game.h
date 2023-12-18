@@ -14,6 +14,7 @@
 #include "obstacle.h"
 #include "logger.h"
 #include "misc.h"
+#include "audio.h"
 
 #include <string>
 #include <iostream>
@@ -98,6 +99,7 @@ class GameManager : public EventHandler, public std::enable_shared_from_this<Gam
 	GeometryRenderer* menuRenderer;
 	std::shared_ptr<Menu> activeMenu;
 	std::shared_ptr<LevelMap> map;
+	std::shared_ptr<AudioManager> audioManager;
 	int playerHealth = 100;
 	bool keyCollected = false;
 	class RunLevelTask : public ScheduledTask {

@@ -1,0 +1,53 @@
+#define MINIAUDIO_IMPLEMENTATION
+#include "logger.h"
+#include "miniaudio.h"
+
+#include "audio.h"
+
+#include <memory>
+
+extern SpylikeLogger LOGGER;
+
+void AudioManager::on_event(Event& e) {
+	if (e.type == "AUDIO_PlayMusic") {
+		SpylikeEvents::AudioPlayEvent& ap = dynamic_cast<SpylikeEvents::AudioPlayEvent&>(e);
+		playMusic(ap.sound, ap.volume);
+	}
+}
+
+MiniaudioManager::MiniaudioManager(std::string rootPath) : rootPath{rootPath} {
+	LOGGER.log("Initalizing audio manager", DEBUG);
+	engine = new ma_engine;
+	ma_result result = ma_engine_init(NULL, engine);
+	if (result != MA_SUCCESS) throw "Error initalizing audio engine.";
+}
+
+void MiniaudioManager::playMusic(std::string track, float volume) {
+	LOGGER.log("Playing music " + track, DEBUG);
+	if (playing) stopMusic();
+	playing = true;
+	cMusic = new ma_sound;
+	const char* path = (rootPath + "music/" + track).c_str();
+	ma_result res = ma_sound_init_from_file(engine, path, 0, NULL, NULL, cMusic);
+	ma_sound_set_volume(cMusic, volume);
+	ma_sound_set_looping(cMusic, true);
+	ma_sound_start(cMusic);
+}
+
+void MiniaudioManager::playSound(std::string sound, float volume) {
+	const char* path = (rootPath + "sound/" + sound).c_str();
+	ma_engine_play_sound(engine, path, NULL);
+}
+
+void MiniaudioManager::stopMusic() {
+	LOGGER.log("Stopping music", DEBUG);
+	if (cMusic && engine && playing) {
+		ma_sound_uninit(cMusic);
+		delete cMusic;
+	}
+	playing = false;
+}
+
+void MiniaudioManager::setMusicVolume(float volume) {
+	if (cMusic) ma_sound_set_volume(cMusic, volume);
+}

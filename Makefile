@@ -1,7 +1,7 @@
 CXX=g++
 CPPFLAGS=-std=c++2a -Iinclude -Igame/include
 LDLIBS=
-OBJS=graphics/*.cpp logging/*.cpp models/*.cpp level/*.cpp game/*.cpp game/entities/*.cpp game/UI/*.cpp util/*.cpp main.cpp
+OBJS=graphics/*.cpp logging/*.cpp models/*.cpp level/*.cpp audio/*.cpp game/*.cpp game/entities/*.cpp game/UI/*.cpp util/*.cpp main.cpp
 VER=vA1
 
 ifndef PDCURSES_BACKEND
@@ -34,7 +34,7 @@ build: $(OBJS)
 	cp lib/miniaudio/miniaudio.h lib/include/miniaudio.h
 	$(CXX) $(CPPFLAGS) -o Spylike-$(VER) $(OBJS) $(LDLIBS)
 
-debug: CPPFLAGS+= -g -O0
+debug: CPPFLAGS+= -g -O0 -fsanitize=address
 debug: build
 
 build-pdcurses:

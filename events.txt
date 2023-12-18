@@ -10,6 +10,9 @@ CAMERA_MoveRight: Moves the camera right by one unit. (CameraEvent)
 CAMERA_MoveLeft: Moves the camera left by one unit. (CameraEvent)
 CAMERA_Move: Moves the camera to pos specified in CameraEvent.pos.
 
+Audio:
+AUDIO_PlayMusic: Plays the music with filepath [rootPath]/AudioPlayEvent.sound and volume AudioPlayEvent.volume
+
 Game:
 GAME_PlayerDeath: Emitted when the Player reaches 0 health (or some other death-causing event)
 GAME_PlayerHurt: Emitted when the player is hurt, PlayerHurtEvent.health gives *current* health (after hurt)

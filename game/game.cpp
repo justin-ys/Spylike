@@ -85,6 +85,7 @@ void GameManager::loadLevel(Level level) {
 	eventManager->subscribe(camera, "CAMERA_MoveLeft");
 	eventManager->subscribe(camera, "CAMERA_MoveRight");
 	eventManager->subscribe(camera, "CAMERA_Move");
+	eventManager->subscribe(audioManager, "AUDIO_PlayMusic");
 	eventManager->subscribe(shared_from_this(), "MENU_Show");
 	eventManager->subscribe(shared_from_this(), "INPUT_KeyPress");
 	eventManager->subscribe(shared_from_this(), "MENU_ButtonClick");
@@ -101,10 +102,12 @@ void GameManager::loadLevel(Level level) {
 		}
 		map->registerEntity(entPair.first, entPair.second);
 	}
+	if (!audioManager->isPlaying()) audioManager->playMusic("1-1.wav", 0.25);
 }
 
 // Note: You must close any active menus, before showing a new one.
 void GameManager::showMenu(std::shared_ptr<Menu> menu, bool pause) {
+	audioManager->stopMusic();
 	if (!scheduler.isRunning("MenuTask")) {
 		activeMenu = menu;
 		activeMenu->setID(1025);
@@ -171,6 +174,7 @@ void GameManager::run() {
 	camera->setOffset(30, 20);
 	menuManager = std::make_shared<TextRenderManager>(screen, layers);
 
+
 	eventManager = std::make_shared<EventManager>();
 	menuEventManager = std::make_shared<EventManager>();
 	inputManager = std::make_shared<InputManager>(eventManager, screen);
@@ -179,6 +183,8 @@ void GameManager::run() {
 	gameRenderer = &theRenderer;
 	GeometryRenderer theMenuRenderer = GeometryRenderer(*menuManager);
 	menuRenderer = &theMenuRenderer;
+
+	audioManager = std::make_shared<MiniaudioManager>("game/resource/audio/");
 
 	Level level = load_from_file("game/resource/levels/1-3.spm");
 	loadLevel(level);

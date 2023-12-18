@@ -56,6 +56,12 @@ namespace SpylikeEvents {
 		bool res;
 		DoorResponseEvent(std::string type, bool res) : Event(type), res(res) {}
 	};
+
+	struct AudioPlayEvent : Event {
+		std::string sound;
+		float volume;
+		AudioPlayEvent(std::string type, std::string sound, float volume=0.5) : Event(type), sound(sound), volume(volume) {}
+	};
 }
 
 class EventHandler {
