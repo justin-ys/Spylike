@@ -45,7 +45,17 @@ void MiniaudioManager::stopMusic() {
 		ma_sound_uninit(cMusic);
 		delete cMusic;
 	}
+	cMusic = nullptr;
 	playing = false;
+}
+
+void MiniaudioManager::pauseMusic() {
+	LOGGER.log("Pausing music", DEBUG);
+	if (cMusic) ma_sound_stop(cMusic);
+}
+
+void MiniaudioManager::resumeMusic() {
+	if (cMusic) ma_sound_start(cMusic);
 }
 
 void MiniaudioManager::setMusicVolume(float volume) {

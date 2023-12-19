@@ -107,7 +107,7 @@ void GameManager::loadLevel(Level level) {
 
 // Note: You must close any active menus, before showing a new one.
 void GameManager::showMenu(std::shared_ptr<Menu> menu, bool pause) {
-	audioManager->stopMusic();
+	audioManager->pauseMusic();
 	if (!scheduler.isRunning("MenuTask")) {
 		activeMenu = menu;
 		activeMenu->setID(1025);
@@ -129,6 +129,7 @@ void GameManager::closeMenu() {
 	scheduler.resumeTask("RunLevel");
 	scheduler.pauseTask("MenuTask");
 	camera->unlock();
+	audioManager->resumeMusic();
 }
 
 void GameManager::on_event(Event& e) {

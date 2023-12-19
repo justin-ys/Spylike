@@ -34,7 +34,7 @@ build: $(OBJS)
 	cp lib/miniaudio/miniaudio.h lib/include/miniaudio.h
 	$(CXX) $(CPPFLAGS) -o Spylike-$(VER) $(OBJS) $(LDLIBS)
 
-debug: CPPFLAGS+= -g -O0 -fsanitize=address
+debug: CPPFLAGS+= -g -O0
 debug: build
 
 build-pdcurses:
