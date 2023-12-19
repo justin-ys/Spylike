@@ -86,6 +86,7 @@ void GameManager::loadLevel(Level level) {
 	eventManager->subscribe(camera, "CAMERA_MoveRight");
 	eventManager->subscribe(camera, "CAMERA_Move");
 	eventManager->subscribe(audioManager, "AUDIO_PlayMusic");
+	eventManager->subscribe(audioManager, "AUDIO_PauseMusic");
 	eventManager->subscribe(shared_from_this(), "MENU_Show");
 	eventManager->subscribe(shared_from_this(), "INPUT_KeyPress");
 	eventManager->subscribe(shared_from_this(), "MENU_ButtonClick");
@@ -139,7 +140,7 @@ void GameManager::on_event(Event& e) {
 	if (e.type == "MENU_ButtonClick") {
 		SpylikeEvents::MenuButtonEvent& mb = dynamic_cast<SpylikeEvents::MenuButtonEvent&>(e);
 		if (mb.buttonID == "close") closeMenu();
-		if (mb.buttonID == "restart") {closeMenu(); playerHealth=100; keyCollected=false; loadLevel(load_from_file("game/resource/levels/1-1.spm"));}
+		if (mb.buttonID == "restart") {closeMenu(); playerHealth=100; keyCollected=true; loadLevel(load_from_file("game/resource/levels/1-f.spm"));}
 		if (mb.buttonID == "quit") quit();
 	}
 	if (e.type == "LEVEL_Change") {

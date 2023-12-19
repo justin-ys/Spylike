@@ -13,6 +13,9 @@ void AudioManager::on_event(Event& e) {
 		SpylikeEvents::AudioPlayEvent& ap = dynamic_cast<SpylikeEvents::AudioPlayEvent&>(e);
 		playMusic(ap.sound, ap.volume);
 	}
+	else if (e.type == "AUDIO_PauseMusic") {
+		pauseMusic();
+	}
 }
 
 MiniaudioManager::MiniaudioManager(std::string rootPath) : rootPath{rootPath} {

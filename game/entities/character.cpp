@@ -44,7 +44,8 @@ void Player::on_event(Event& e) {
 							std::shared_ptr<Character> character = std::dynamic_pointer_cast<Character>(entity);
 							if (character) {
 								character->hurt(20);
-								if (character->isAlive()) {
+								std::shared_ptr<Character> boss = std::dynamic_pointer_cast<Boss>(entity);
+								if (!boss && character->isAlive()) {
 									Coordinate newCharPos = character->getPos();
 									if (getPos().x < newCharPos.x) newCharPos.x++;
 									else if (getPos().x > newCharPos.x) newCharPos.x--;
@@ -339,11 +340,11 @@ void SkeletonArrow::on_update() {
 		yFlag += yVel;
 		Coordinate newPos = getPos();
 		if (abs(xFlag) >= 100) {
-			newPos.x = newPos.x + abs(xVel)/xVel;
+			newPos.x = newPos.x + (abs(xVel)/xVel)*(abs(xFlag)/100);
 			xFlag = 0;
 		}
 		if (abs(yFlag) >= 100) {
-			newPos.y = newPos.y + abs(yVel)/yVel;
+			newPos.y = newPos.y + abs(yVel)/yVel*(abs(yFlag)/100);
 			yFlag = 0;
 		}
 		if (newPos != getPos()) {
@@ -361,3 +362,75 @@ void SkeletonArrow::on_collide(std::shared_ptr<TileEntity> collider) {
 	kill();
 }
 
+void Boss::on_init() {
+	SpylikeEvents::AudioPlayEvent ap("AUDIO_PlayMusic", "1-f.wav", 0.25);
+	eventManager->emit(ap);
+	std::vector<std::shared_ptr<Player>> res = world->findEntities<Player>(getPos(), 15);
+	if (res.size() > 0) {
+		res[0]->health = 100;
+	}
+}
+
+void Boss::draw(GeometryRenderer& painter) {
+	painter.draw(getPos(), '/', "Entity");
+	painter.draw(Coordinate(getPos().x+1, getPos().y), '\\', "Entity");
+	painter.draw(Coordinate(getPos().x+1, getPos().y-1), ')', "Entity");
+	painter.draw(Coordinate(getPos().x, getPos().y-1), '(', "Entity");
+	if (state == BossState::Alert) {
+		painter.drawString(Coordinate(getPos().x, getPos().y-2), alertSprite.getCurrentFrame(), "Entity");
+		alertSprite.nextFrame();
+	}
+}
+
+void Boss::on_update() {
+	if (state == BossState::Alert) {
+		alertTimer.tick();
+		if (alertTimer.getElapsed() > 60) {
+			if (rand() % 2) state = BossState::Attack1;
+			else state = BossState::Attack2;
+			fireTimer.reset();
+			alertTimer.reset();
+		}
+	}
+	else if (state == BossState::Attack1) {
+		fireTimer.tick();
+		if ((fireTimer.getElapsed() % 20) < 5) {
+			Coordinate arrowPos = Coordinate(getPos().x-1, getPos().y);
+			int yVel;
+			if ((fireTimer.getElapsed() % 20) % 3 == 0) yVel = 0;
+			else if ((fireTimer.getElapsed() % 20) % 3 == 1) yVel = -30;
+			else yVel = -20;
+			auto tile = world->getTile(arrowPos);
+			if (!tile || tile->getEntities().size() == 0) {
+				std::shared_ptr<SkeletonArrow> arrow = std::make_shared<SkeletonArrow>(-300, yVel);
+				arrow->init(eventManager);
+				world->registerEntity(arrow, arrowPos);
+			}
+		}
+		if (fireTimer.getElapsed() > 60) {
+			state = BossState::Alert;
+		}
+	}
+	else if (state == BossState::Attack2) {
+		fireTimer.tick();
+		if ((fireTimer.getElapsed() % 15) == 0) {
+			for (int y=0; y<3; y++) {
+				std::shared_ptr<SkeletonArrow> arrow = std::make_shared<SkeletonArrow>(-300, 0);
+				arrow->init(eventManager);
+				world->registerEntity(arrow, Coordinate(getPos().x, getPos().y-y));
+			}
+		}
+		if (fireTimer.getElapsed() > 100) {
+			state = BossState::Alert;
+		}
+	}
+	if (health <= 0) {
+		Event ev("AUDIO_PauseMusic");
+		eventManager->emit(ev);
+		kill();
+	}	
+}
+
+void Boss::hurt(int damage) {
+	health -= damage;
+}

@@ -72,5 +72,22 @@ class SkeletonArrow : public TileEntity {
 	public:
 		SkeletonArrow(int xVel, int yVel) : TileEntity(true), xVel{xVel}, yVel{yVel} {}
 };
+
+class Boss : public Character {
+	enum BossState { Alert, Attack1, Attack2 };
+	BossState state = BossState::Alert;
+	Timer alertTimer;
+	Timer fireTimer;
+	std::vector<SpriteFrame> alertFrames{SpriteFrame{SpriteDelta(0, "")}, SpriteFrame{SpriteDelta(0, "!")}, SpriteFrame{SpriteDelta(0, "")}, SpriteFrame{SpriteDelta(0, "!")}, SpriteFrame{SpriteDelta(0, "")}, SpriteFrame{SpriteDelta(0, "")}};
+	Sprite alertSprite{alertFrames, 1};
+	void on_event(Event& e) override {}
+	void on_update() override;
+	void draw(GeometryRenderer& painter) override;
+	void on_collide(std::shared_ptr<TileEntity> collider) override {}
+	void on_init() override;
+	public:
+		void hurt(int damage) override;
+                int health = 240;
+};
 	
 #endif

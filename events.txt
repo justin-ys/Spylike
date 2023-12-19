@@ -12,6 +12,7 @@ CAMERA_Move: Moves the camera to pos specified in CameraEvent.pos.
 
 Audio:
 AUDIO_PlayMusic: Plays the music with filepath [rootPath]/AudioPlayEvent.sound and volume AudioPlayEvent.volume
+AUDIO_PauseMusic: Pauses any currently playing music
 
 Game:
 GAME_PlayerDeath: Emitted when the Player reaches 0 health (or some other death-causing event)

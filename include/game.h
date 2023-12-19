@@ -55,6 +55,7 @@ inline Level load_from_file(std::string path) {
 		else if (name == "Lava") ent = std::make_shared<LavaGenerator>();
 		else if (name == "Key") ent = std::make_shared<Key>();
 		else if (name == "Door") ent = std::make_shared<Door>();
+		else if (name == "Boss") ent = std::make_shared<Boss>();
 		else ent = std::make_shared<Wall>();
 		idx++;
 		std::string entXStr;
