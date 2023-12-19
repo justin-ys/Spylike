@@ -78,7 +78,7 @@ void StartMenu::draw(GeometryRenderer& painter) {
 	painter.drawString(Coordinate(painter.getScreenWidth()/2-7, 2), "CONTROLS:", "UI");
 	painter.drawString(Coordinate(painter.getScreenWidth()/2-10, 3), "W,A,S,D MOVEMENT", "UI");
 	painter.drawString(Coordinate(painter.getScreenWidth()/2-9, 4), "V,B,N,G ATTACK", "UI");
-	painter.drawString(Coordinate(painter.getScreenWidth()/2-9, 4), "ESC PAUSE", "UI");
+	painter.drawString(Coordinate(painter.getScreenWidth()/2-9, 5), "ESC PAUSE", "UI");
 	Menu::draw(painter);
 }
 
