@@ -30,8 +30,9 @@ void MiniaudioManager::playMusic(std::string track, float volume) {
 	if (playing) stopMusic();
 	playing = true;
 	cMusic = new ma_sound;
-	const char* path = (rootPath + "music/" + track).c_str();
-	ma_result res = ma_sound_init_from_file(engine, path, 0, NULL, NULL, cMusic);
+	std::string path = rootPath + "music/" + track;
+	const char* path_str = path.c_str();
+	ma_result res = ma_sound_init_from_file(engine, path_str, 0, NULL, NULL, cMusic);
 	ma_sound_set_volume(cMusic, volume);
 	ma_sound_set_looping(cMusic, true);
 	ma_sound_start(cMusic);

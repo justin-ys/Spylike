@@ -1,5 +1,5 @@
 CXX=g++
-CPPFLAGS=-std=c++2a -Iinclude -Igame/include -Ilib/include
+CPPFLAGS=-std=c++2a -Iinclude -Igame/include -Ilib/include -DMA_NO_PULSEAUDIO
 LDLIBS=
 OBJS=graphics/*.cpp logging/*.cpp models/*.cpp level/*.cpp audio/*.cpp game/*.cpp game/entities/*.cpp game/UI/*.cpp util/*.cpp main.cpp
 VER=vA1
@@ -14,6 +14,7 @@ ifndef PDCURSES_BACKEND
 				USE_NCURSES=1
 			endif
 			PDCURSES_BACKEND=x11
+			LDLIBS+= -lpthread -lm -ldl
 		endif
 	endif
 endif
