@@ -41,4 +41,3 @@ void InputManager::update() {
 	}
 	*/
 }
-			
