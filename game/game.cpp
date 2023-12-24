@@ -74,6 +74,7 @@ void GameManager::pause() {
 }
 
 void GameManager::quit() {
+	screen.end();
 	exit(0);
 }
 
@@ -140,7 +141,7 @@ void GameManager::on_event(Event& e) {
 	if (e.type == "MENU_ButtonClick") {
 		SpylikeEvents::MenuButtonEvent& mb = dynamic_cast<SpylikeEvents::MenuButtonEvent&>(e);
 		if (mb.buttonID == "close") closeMenu();
-		if (mb.buttonID == "restart") {closeMenu(); playerHealth=100; keyCollected=true; loadLevel(load_from_file("game/resource/levels/1-f.spm"));}
+		if (mb.buttonID == "restart") {closeMenu(); playerHealth=100; keyCollected=false; loadLevel(load_from_file("game/resource/levels/1-1.spm"));}
 		if (mb.buttonID == "quit") quit();
 	}
 	if (e.type == "LEVEL_Change") {
@@ -171,7 +172,6 @@ void GameManager::on_event(Event& e) {
 
 void GameManager::run() {
 	std::vector<RenderLayer> layers {RenderLayer("Entity", 1), RenderLayer("Effect", 2), RenderLayer("UI", 3), RenderLayer("Overlay", 4)};
-	NcursesTerminalScreen screen(80, 30);
 	camera = std::make_shared<Camera>(screen, 80, 30, layers);
 	camera->setOffset(30, 20);
 	menuManager = std::make_shared<TextRenderManager>(screen, layers);

@@ -1,5 +1,5 @@
 CXX=g++
-CPPFLAGS=-std=c++2a -Iinclude -Igame/include
+CPPFLAGS=-std=c++2a -Iinclude -Igame/include -Ilib/include
 LDLIBS=
 OBJS=graphics/*.cpp logging/*.cpp models/*.cpp level/*.cpp audio/*.cpp game/*.cpp game/entities/*.cpp game/UI/*.cpp util/*.cpp main.cpp
 VER=vA1
@@ -22,7 +22,6 @@ ifeq ($(USE_NCURSES), 1)
 	LDLIBS+= -lncursesw
 else
 	LDLIBS+= -Llib/bin -lpdcurses
-    CPPFLAGS+= -Ilib/include
 endif
 
 ifndef PDCURSES_BACKEND

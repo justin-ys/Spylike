@@ -90,6 +90,7 @@ inline Level load_from_file(std::string path) {
 class GameManager : public EventHandler, public std::enable_shared_from_this<GameManager> {
 	bool paused;
 	FrameScheduler scheduler = FrameScheduler(20);
+	NcursesTerminalScreen screen = NcursesTerminalScreen(80, 30);
 	std::shared_ptr<EventManager> eventManager;
 	std::shared_ptr<EventManager> menuEventManager;
 	std::shared_ptr<InputManager> inputManager;

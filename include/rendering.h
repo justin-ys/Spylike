@@ -65,10 +65,9 @@ class TextRenderManager {
         void clearScreen();
 	void lock() { locked = true; } // prevents any new draws from taking effect - pauses the camera
 	void unlock() { locked = false; }
-        int getScreenWidth();
-        int getScreenHeight();
-        std::string getSnapshot();
-        
+    int getScreenWidth();
+    int getScreenHeight();
+    std::string getSnapshot();
 };
 
 class GeometryRenderer {
