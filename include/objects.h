@@ -12,7 +12,9 @@ class Object : public EventHandler {
 		std::shared_ptr<EventManager> eventManager;
 		virtual void on_event(Event& e) = 0;
 		virtual void on_update() = 0;
+		virtual void on_init() {}
 		int ID = -1;
+		void registerEventManager(std::shared_ptr<EventManager> manager);
 	public:
 		void update() {
 			assert(eventManager);
@@ -23,9 +25,12 @@ class Object : public EventHandler {
 			assert(eventManager);
 			on_event(e);
 		};
+		void init(std::shared_ptr<EventManager> manager) {
+			registerEventManager(manager);
+			on_init();
+		}
 		void setID(int objID);
 		int getID();
-		void registerEventManager(std::shared_ptr<EventManager> manager);
 };
 
 class SpritedObject : public Object {

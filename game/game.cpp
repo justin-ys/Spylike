@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cmath>
 #include "rendering.h"
+#include "scheduling.h"
 #include "camera.h"
 #include "screen.h"
 #include "sprites.h"
@@ -9,7 +10,10 @@
 #include "logger.h"
 #include "menus.h"
 #include "input.h"
-using namespace std;
+#include "character.h"
+#include "obstacle.h"
+#include "game.h"
+#include "geometry.h"
 #include <vector>
 #include <string>
 #include <memory>
@@ -18,75 +22,179 @@ using namespace std;
 
 extern SpylikeLogger LOGGER;
 
-class epicEntity : public TileEntity {
-	Sprite sprite;
-	public:
-		epicEntity(Sprite sprite) : sprite(sprite) {}
-		void on_update() {
-			sprite.nextFrame();
-		}
-		void draw(GeometryRenderer& painter) {
-			painter.drawString(tile->pos, sprite.getCurrentFrame(), "pog");
-		}
-		
-		void on_event(Event& e) {
-			SpylikeEvents::KeyInputEvent &ke = dynamic_cast<SpylikeEvents::KeyInputEvent&>(e);
-			LOGGER.log(std::to_string(ke.c), DEBUG);
-		}
-};
-		
+std::string formatSeconds(int seconds) {
+	int minutes = seconds/60;
+	seconds = seconds - 60*minutes;
+	return std::to_string(minutes) + ":" + std::to_string(seconds);
+}
 
-namespace Game {
-	void run() {
-		SpriteDelta d1 = {0, "lol"};
-		SpriteDelta d2 = {1, "e"};
-		SpriteDelta d3 = {0, "p"};
-		SpriteDelta d4 = {2, "gg"};
-		SpriteDelta d5 = {0, "o\b"};
-		SpriteFrame f1 = {d1};
-		SpriteFrame f2 = {d2};
-		SpriteFrame f3 = {d3, d4};
-		SpriteFrame f4 = {d5};
-		
-		vector<SpriteFrame> frames = {f1, f2, f3, f4};
-		Sprite coolSprite(frames, 4);
-		
-		vector<RenderLayer> layers = {RenderLayer("pog", 1), RenderLayer("UI", 2)};
-		NcursesTerminalScreen screen(60, 20);
-		
-		Camera camera(screen, 60, 20, layers);
-		GeometryRenderer renderer(camera);
-		
-		std::shared_ptr<EventManager> manager(new EventManager());
-		std::shared_ptr<InputManager> inputManager(new InputManager(manager, screen));
-		std::shared_ptr<epicEntity> ent = std::make_shared<epicEntity>(coolSprite);
-		
-		std::shared_ptr<MenuButton> button = std::make_shared<MenuButton>(20, 4, "mug moment", "pog");
-		std::shared_ptr<Menu> menu = std::make_shared<Menu>(60, 20);
-		menu->addChild(button);
-		
-		IDBlock idAllocation = {0, 1024};
-		std::shared_ptr<LevelMap> map = std::make_shared<LevelMap>(60, 20, manager, idAllocation);
-		map->registerEntity(ent, Coordinate(5,5));
-		map->registerEntity(menu, Coordinate(1,1));
-		menu->addButton(button, Coordinate(0,0));
-		map->moveEntity(menu, Coordinate(3,3));
-		menu->click();
-		
-		bool flag = true;
-		while (true) {
-			//camera.setOrigin(Coordinate(camera.getOrigin().x + 1, camera.getOrigin().y + 1));
-			for (int y=0; y<20; y++) {
-				for (int x=0; x<60; x++) {
-					map->updateTile(Coordinate(x, y));
-					map->drawTile(Coordinate(x, y), renderer);
-					inputManager->update();
-				}
+void GameManager::RunLevelTask::update() {
+	manager.camera->clearScreen();
+	Coordinate origin = manager.camera->getOrigin();
+	int yOff = manager.camera->getYOffset();
+	int xOff = manager.camera->getXOffset();
+	for (int y=(origin.y+yOff); y>(origin.y+yOff-(2*manager.camera->getScreenHeight())); y--) {
+		for (int x=(origin.x-xOff); x<(origin.x-xOff+(2*manager.camera->getScreenWidth())); x++) {
+			if (manager.map->isInMap(Coordinate(x, y))) {
+				manager.map->updateTile(Coordinate(x, y));
+				manager.map->drawTile(Coordinate(x, y), *manager.gameRenderer);
 			}
-			usleep(500000);
-			camera.clearScreen();
 		}
+	}
+	//manager.menuRenderer->drawBox(Coordinate(0, 0), Coordinate(manager.menuManager->getScreenWidth(), manager.menuManager->getScreenHeight()), "Overlay");
+	//manager.menuManager->renderToScreen();
+	manager.camera->toggleAbsolute();
+	manager.gameRenderer->drawString(Coordinate(0, 0), "Health: " + std::to_string(manager.playerHealth), "UI");
+	manager.gameRenderer->drawString(Coordinate(0, 1), "Time elapsed: " + formatSeconds(manager.scheduler.timeElapsed()), "UI");
+	manager.camera->toggleAbsolute();
+	manager.camera->renderToScreen();
+	manager.inputManager->update();
 
-		screen.end();
+}
+
+void GameManager::TickTask::update() {}
+
+void GameManager::MenuTask::update() {
+	manager.menuManager->clearScreen();
+	manager.activeMenu->draw(*manager.menuRenderer);
+	manager.activeMenu->update();
+	manager.menuRenderer->drawBox(Coordinate(0, 0), Coordinate(manager.menuManager->getScreenWidth(), manager.menuManager->getScreenHeight()-1), "Overlay");
+	manager.menuManager->renderToScreen();
+	manager.menuInputManager->update();
+}
+
+void GameManager::StartupTask::update() {
+	manager.showMenu(SpylikeMenus::startMenu(), true);
+	manager.scheduler.pauseTask("StartupTask");
+}
+
+
+void GameManager::pause() {
+	paused = true;
+}
+
+void GameManager::quit() {
+	screen.end();
+	exit(0);
+}
+
+void GameManager::loadLevel(Level level) {
+	LOGGER.log("Loading level", DEBUG);
+	eventManager->clear();
+	eventManager->subscribe(camera, "CAMERA_MoveUp");
+	eventManager->subscribe(camera, "CAMERA_MoveDown");
+	eventManager->subscribe(camera, "CAMERA_MoveLeft");
+	eventManager->subscribe(camera, "CAMERA_MoveRight");
+	eventManager->subscribe(camera, "CAMERA_Move");
+	eventManager->subscribe(audioManager, "AUDIO_PlayMusic");
+	eventManager->subscribe(audioManager, "AUDIO_PauseMusic");
+	eventManager->subscribe(shared_from_this(), "MENU_Show");
+	eventManager->subscribe(shared_from_this(), "INPUT_KeyPress");
+	eventManager->subscribe(shared_from_this(), "MENU_ButtonClick");
+	eventManager->subscribe(shared_from_this(), "LEVEL_Change");
+	eventManager->subscribe(shared_from_this(), "GAME_PlayerHurt");
+	eventManager->subscribe(shared_from_this(), "GAME_KeyCollect");
+	eventManager->subscribe(shared_from_this(), "GAME_DoorRequest");
+	IDBlock idAllocation = {0, 1024};
+	map = std::make_shared<LevelMap>(level.width, level.height, eventManager, idAllocation, level.worldType);
+	for (auto entPair : level.entities) {
+		std::shared_ptr<Player> player = std::dynamic_pointer_cast<Player>(entPair.first);
+		if (player) {
+			player->health = playerHealth;
+		}
+		map->registerEntity(entPair.first, entPair.second);
+	}
+	if (!audioManager->isPlaying()) audioManager->playMusic("1-1.wav", 0.25);
+}
+
+// Note: You must close any active menus, before showing a new one.
+void GameManager::showMenu(std::shared_ptr<Menu> menu, bool pause) {
+	audioManager->pauseMusic();
+	if (!scheduler.isRunning("MenuTask")) {
+		activeMenu = menu;
+		activeMenu->setID(1025);
+		activeMenu->init(eventManager);
+		menuEventManager->subscribe(activeMenu, "INPUT_KeyPress");
+		if (pause) {
+			scheduler.pauseTask("RunLevel");
+		}
+		camera->clearScreen();
+		camera->renderToScreen();
+		camera->lock();
+		scheduler.resumeTask("MenuTask");
 	}
 }
+
+void GameManager::closeMenu() {
+	menuEventManager->unsubscribe(activeMenu);
+	activeMenu = nullptr;
+	scheduler.resumeTask("RunLevel");
+	scheduler.pauseTask("MenuTask");
+	camera->unlock();
+	audioManager->resumeMusic();
+}
+
+void GameManager::on_event(Event& e) {
+	if (e.type == "MENU_Show") {
+		showMenu(SpylikeMenus::testMenu(), true);
+	}
+	if (e.type == "MENU_ButtonClick") {
+		SpylikeEvents::MenuButtonEvent& mb = dynamic_cast<SpylikeEvents::MenuButtonEvent&>(e);
+		if (mb.buttonID == "close") closeMenu();
+		if (mb.buttonID == "restart") {closeMenu(); playerHealth=100; keyCollected=false; loadLevel(load_from_file("game/resource/levels/1-1.spm"));}
+		if (mb.buttonID == "quit") quit();
+	}
+	if (e.type == "LEVEL_Change") {
+		SpylikeEvents::LevelChangeEvent& lc = dynamic_cast<SpylikeEvents::LevelChangeEvent&>(e);
+		Level level = load_from_file(lc.levelPath);
+		loadLevel(level);
+	}
+	if (e.type == "INPUT_KeyPress") {
+		SpylikeEvents::KeyInputEvent& ke = dynamic_cast<SpylikeEvents::KeyInputEvent&>(e);
+		if (ke.c == 27) {
+			showMenu(SpylikeMenus::pauseMenu());
+		}
+	}
+	if (e.type == "GAME_PlayerHurt") {
+		SpylikeEvents::PlayerHurtEvent& ph = dynamic_cast<SpylikeEvents::PlayerHurtEvent&>(e);
+		playerHealth = ph.health;
+		if (playerHealth <= 0) showMenu(SpylikeMenus::gameOver());
+	}
+	if (e.type == "GAME_KeyCollect") {
+		keyCollected = true;
+	}
+	if (e.type == "GAME_DoorRequest") {
+		SpylikeEvents::DoorResponseEvent ev("GAME_DoorResponse", keyCollected);
+		eventManager->emit(ev);
+	}
+}
+
+
+void GameManager::run() {
+	std::vector<RenderLayer> layers {RenderLayer("Entity", 1), RenderLayer("Effect", 2), RenderLayer("UI", 3), RenderLayer("Overlay", 4)};
+	camera = std::make_shared<Camera>(screen, 80, 30, layers);
+	camera->setOffset(30, 20);
+	menuManager = std::make_shared<TextRenderManager>(screen, layers);
+
+
+	eventManager = std::make_shared<EventManager>();
+	menuEventManager = std::make_shared<EventManager>();
+	inputManager = std::make_shared<InputManager>(eventManager, screen);
+	menuInputManager = std::make_shared<InputManager>(menuEventManager, screen);
+	GeometryRenderer theRenderer = GeometryRenderer(*camera);
+	gameRenderer = &theRenderer;
+	GeometryRenderer theMenuRenderer = GeometryRenderer(*menuManager);
+	menuRenderer = &theMenuRenderer;
+
+	audioManager = std::make_shared<MiniaudioManager>("game/resource/audio/");
+
+	Level level = load_from_file("game/resource/levels/1-3.spm");
+	loadLevel(level);
+	
+	scheduler.addTask(std::make_unique<RunLevelTask>(*this));
+	scheduler.addTask(std::make_unique<TickTask>(*this));
+	scheduler.addTask(std::make_unique<MenuTask>(*this));
+	scheduler.addTask(std::make_unique<StartupTask>(*this));
+	scheduler.pauseTask("MenuTask");
+	scheduler.run();
+}	

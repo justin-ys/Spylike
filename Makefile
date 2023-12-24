@@ -1,7 +1,7 @@
 CXX=g++
-CPPFLAGS=-std=c++11 -Iinclude
+CPPFLAGS=-std=c++2a -Iinclude -Igame/include -Ilib/include -DMA_NO_PULSEAUDIO
 LDLIBS=
-OBJS=graphics/*.cpp logging/*.cpp models/*.cpp level/*.cpp game/*.cpp game/UI/*.cpp main.cpp
+OBJS=graphics/*.cpp logging/*.cpp models/*.cpp level/*.cpp audio/*.cpp game/*.cpp game/entities/*.cpp game/UI/*.cpp util/*.cpp main.cpp
 VER=vA1
 
 ifndef PDCURSES_BACKEND
@@ -14,15 +14,15 @@ ifndef PDCURSES_BACKEND
 				USE_NCURSES=1
 			endif
 			PDCURSES_BACKEND=x11
+			LDLIBS+= -lpthread -lm -ldl
 		endif
 	endif
 endif
 
 ifeq ($(USE_NCURSES), 1)
-	LDLIBS+= -lncurses
+	LDLIBS+= -lncursesw
 else
 	LDLIBS+= -Llib/bin -lpdcurses
-    CPPFLAGS+= -Ilib/include
 endif
 
 ifndef PDCURSES_BACKEND
@@ -31,9 +31,10 @@ endif
 
 build: build-pdcurses
 build: $(OBJS)
+	cp lib/miniaudio/miniaudio.h lib/include/miniaudio.h
 	$(CXX) $(CPPFLAGS) -o Spylike-$(VER) $(OBJS) $(LDLIBS)
 
-debug: CPPFLAGS+= -g
+debug: CPPFLAGS+= -g -O0
 debug: build
 
 build-pdcurses:
@@ -45,7 +46,7 @@ else # BEGIN PDCURSES BUILD BLOCK
 	cp lib/PDCurses/curses.h lib/include/curses.h
 	cp lib/PDCurses/panel.h lib/include/panel.h
     ifeq ($(PDCURSES_BACKEND), wincon)
-	    cd lib/PDCurses/wincon && $(MAKE)
+	    cd lib/PDCurses/wincon && $(MAKE) UTF8=Y WIDE=Y
 	    cp lib/PDCurses/wincon/pdcurses.a lib/bin/libpdcurses.a
     else ifeq ($(PDCURSES_BACKEND), x11)
 	    cd lib/PDCurses/x11 && ./configure

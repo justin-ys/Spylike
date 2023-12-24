@@ -12,7 +12,7 @@ class ManagedEntity : public TileEntity {
 		TileEntity& parent;
 		void on_update();
 		void draw(GeometryRenderer& painter);
-		void on_event(Event e);
+		void on_event(Event& e);
 };
 
 class ManagerEntity : public TileEntity {

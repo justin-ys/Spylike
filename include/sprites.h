@@ -7,6 +7,7 @@
 struct SpriteDelta {
 	int startPos;
 	std::string data;
+	SpriteDelta(int startPos, std::string data) : startPos{startPos}, data{data} {}
 };
 
 typedef std::vector<SpriteDelta> SpriteFrame;

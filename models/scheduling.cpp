@@ -10,22 +10,18 @@ extern SpylikeLogger LOGGER;
 
 ScheduledTask::ScheduledTask(std::string id) : id(id), running(true) {}
 
-FrameScheduler::FrameScheduler(std::vector<std::shared_ptr<ScheduledTask>> tasks, int maxFPS=60) : tasks(tasks), maxFPS(maxFPS) {
-	assert(maxFPS > 0);
-	runningSignal = false;
-}
-
 void FrameScheduler::run() {
 	int frameDelay = 1000000/maxFPS;
 	if (!runningSignal) { 
 		runningSignal = true;
-		while (true) {
+		while (runningSignal) {
 			for (auto& task : tasks) { 
 					if (task->running) {
 						task->update();
 					}
 			}
 			usleep(frameDelay);
+			usElapsed += frameDelay;
 		}
 	}
 	else {
@@ -59,4 +55,17 @@ void FrameScheduler::resumeTask(std::string taskID) {
 			task->running = true;
 		}
 	}
+}
+
+bool FrameScheduler::isRunning(std::string taskID) {
+	for (auto& task : tasks) {
+		if (task->id == taskID) {
+			return task->running;
+		}
+	}
+	return false;
+}
+
+int FrameScheduler::timeElapsed() {
+	return usElapsed/1000000;
 }

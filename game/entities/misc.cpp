@@ -1,0 +1,73 @@
+#include "misc.h"
+#include "event.h"
+
+void LevelTransition::on_collide(std::shared_ptr<TileEntity> collider) {
+	std::shared_ptr<Player> player = std::dynamic_pointer_cast<Player>(collider);
+	if (player) {
+		SpylikeEvents::LevelChangeEvent le("LEVEL_Change", levelPath);
+		eventManager->emit(le);
+	}
+}
+
+void Key::on_collide(std::shared_ptr<TileEntity> collider) {
+	std::shared_ptr<Player> player = std::dynamic_pointer_cast<Player>(collider);
+	if (player) {
+		Event ev("GAME_KeyCollect");
+		eventManager->emit(ev);
+	}
+	collectedTimer.reset();
+	state = KeyState::Collected;
+}
+
+void Key::on_update() {
+	if (state == KeyState::Collected) {
+		collectedTimer.tick();
+		if (collectedTimer.getElapsed() > 30) kill();
+	}
+}
+
+void Key::draw(GeometryRenderer& painter) {
+	switch (state) {
+		case (KeyState::Idle): {
+			painter.draw(getPos(), '%', "Entity");
+			break;
+		}
+		case (KeyState::Collected): {
+			painter.drawString(Coordinate(getPos().x-10, getPos().y-1), "Key Collected!", "Effect");
+		}
+	}
+}
+
+void Door::on_init() {
+	eventManager->subscribe(shared_from_this(), "GAME_DoorResponse");
+}
+
+void Door::on_event(Event& e) {
+	if (e.type == "GAME_DoorResponse") {
+		SpylikeEvents::DoorResponseEvent& dr = dynamic_cast<SpylikeEvents::DoorResponseEvent&>(e);
+		if (dr.res) kill();
+		else { displayTimer.reset(); state = DoorState::FailedOpen; }
+	}
+}
+
+void Door::on_collide(std::shared_ptr<TileEntity> collider) {
+	std::shared_ptr<Player> player = std::dynamic_pointer_cast<Player>(collider);
+	if (player) {
+		Event ev("GAME_DoorRequest");
+		eventManager->emit(ev);
+	}
+}
+
+void Door::on_update() {
+	if (state == DoorState::FailedOpen) {
+		displayTimer.tick();
+		if (displayTimer.getElapsed() > 30) state = DoorState::Idle;
+	}
+}
+
+void Door::draw(GeometryRenderer& painter) {
+	painter.draw(getPos(), '=', "Entity");
+	if (state == DoorState::FailedOpen) {
+		painter.drawString(Coordinate(getPos().x-10, getPos().y-1), "Get a key first!", "Effect");
+	}
+}

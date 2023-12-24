@@ -8,22 +8,34 @@
 class ScheduledTask {
 	public:
 		ScheduledTask(std::string id);
+		// should be getter/setter
 		std::string id;
+		// ditto
 		bool running;
 		virtual void update() = 0;
 };
 
 class FrameScheduler {
 	int maxFPS;
-	std::vector<std::shared_ptr<ScheduledTask>> tasks;
+	std::vector<std::unique_ptr<ScheduledTask>> tasks;
 	bool runningSignal;
+	int usElapsed=0;
 	public:
-		FrameScheduler(std::vector<std::shared_ptr<ScheduledTask>> tasks, int maxFPS);
+		FrameScheduler(int maxFPS=60) : maxFPS{maxFPS} {
+			runningSignal = false;
+		}
+		void addTask(std::unique_ptr<ScheduledTask> t) {
+			tasks.push_back(std::move(t));
+		}
 		void run();
 		void pause();
 		void resume();
+		// no more IDs
 		void pauseTask(std::string taskID);
+		// should be starttask
 		void resumeTask(std::string taskID);
+		bool isRunning(std::string taskID);
+		int timeElapsed(); // in seconds
 };
 		
 #endif
