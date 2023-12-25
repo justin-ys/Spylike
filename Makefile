@@ -1,7 +1,8 @@
 CXX=g++
 CPPFLAGS=-std=c++2a -Iinclude -Igame/include -Ilib/include -DMA_NO_PULSEAUDIO
 LDLIBS=
-OBJS=graphics/*.cpp logging/*.cpp models/*.cpp level/*.cpp audio/*.cpp game/*.cpp game/entities/*.cpp game/UI/*.cpp util/*.cpp main.cpp
+SOURCES=$(wildcard graphics/*.cpp logging/*.cpp models/*.cpp level/*.cpp audio/*.cpp game/*.cpp game/entities/*.cpp game/UI/*.cpp util/*.cpp main.cpp)
+OBJS=$(patsubst %.cpp, build/%.o, $(SOURCES))
 VER=vA1
 
 ifndef PDCURSES_BACKEND
@@ -33,6 +34,10 @@ build: build-pdcurses
 build: $(OBJS)
 	cp lib/miniaudio/miniaudio.h lib/include/miniaudio.h
 	$(CXX) $(CPPFLAGS) -o Spylike-$(VER) $(OBJS) $(LDLIBS)
+	
+build/%.o: %.cpp
+	mkdir -p $(@D)
+	$(CXX) $(CPPFLAGS) -c -o $@ $(LDLIBS) $^
 
 debug: CPPFLAGS+= -g -O0
 debug: build
