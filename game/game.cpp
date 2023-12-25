@@ -37,9 +37,17 @@ void GameManager::RunLevelTask::update() {
 		for (int x=(origin.x-xOff); x<(origin.x-xOff+(2*manager.camera->getScreenWidth())); x++) {
 			if (manager.map->isInMap(Coordinate(x, y))) {
 				manager.map->updateTile(Coordinate(x, y));
+			}
+		}
+		
+	}
+	for (int y=(origin.y+yOff); y>(origin.y+yOff-(2*manager.camera->getScreenHeight())); y--) {
+		for (int x=(origin.x-xOff); x<(origin.x-xOff+(2*manager.camera->getScreenWidth())); x++) {
+			if (manager.map->isInMap(Coordinate(x, y))) {
 				manager.map->drawTile(Coordinate(x, y), *manager.gameRenderer);
 			}
 		}
+		
 	}
 	//manager.menuRenderer->drawBox(Coordinate(0, 0), Coordinate(manager.menuManager->getScreenWidth(), manager.menuManager->getScreenHeight()), "Overlay");
 	//manager.menuManager->renderToScreen();

@@ -63,7 +63,6 @@ class SkeletonArrow : public TileEntity {
 	void on_update() override;
 	void draw(GeometryRenderer& painter) override;
 	void on_collide(std::shared_ptr<TileEntity> collider) override;
-	Timer moveTimer;
 	Coordinate initialPos;
 	int xFlag=0;
 	int yFlag=0;

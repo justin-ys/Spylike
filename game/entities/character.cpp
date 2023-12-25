@@ -304,20 +304,19 @@ void Skeleton::on_update() {
 		if (res.size() > 0) {
 			std::shared_ptr<Player> player = res[0];
 			int xVel = 0;
-			if (player->getPos().x > getPos().x) xVel = 100;
-			else if (player->getPos().x < getPos().x) xVel = -100;
+			if (player->getPos().x > getPos().x) xVel = 45;
+			else if (player->getPos().x < getPos().x) xVel = -45;
 			int yVel = 0;
 			if (player->getPos().y != getPos().y) {
 				int yDir = abs(player->getPos().y - getPos().y)/(player->getPos().y - getPos().y);
 				if (player->getPos().x != getPos().x) yVel = yDir*abs((xVel*(player->getPos().y - getPos().y))/(player->getPos().x - getPos().x));
-				else yVel = yDir;
+				else yVel = yDir*10;
 			}
-			Coordinate arrowPos = Coordinate(getPos().x+(xVel/100), getPos().y+(yVel/100));
-			auto tile = world->getTile(arrowPos);
-			if (!tile || tile->getEntities().size() == 0) {
+			if (xVel != 0 || yVel != 0) {
 				std::shared_ptr<SkeletonArrow> arrow = std::make_shared<SkeletonArrow>(xVel, yVel);
 				arrow->init(eventManager);
-				world->registerEntity(arrow, arrowPos);
+				world->registerEntity(arrow, getPos());
+				arrow->update();
 			}
 		}
 		fireTimer.reset();
@@ -333,24 +332,20 @@ void SkeletonArrow::draw(GeometryRenderer& painter) {
 }
 
 void SkeletonArrow::on_update() {
-	moveTimer.tick();
-	if (moveTimer.getElapsed() > 2) {	
-		moveTimer.reset();
-		xFlag += xVel;
-		yFlag += yVel;
-		Coordinate newPos = getPos();
-		if (abs(xFlag) >= 100) {
-			newPos.x = newPos.x + (abs(xVel)/xVel)*(abs(xFlag)/100);
-			xFlag = 0;
-		}
-		if (abs(yFlag) >= 100) {
-			newPos.y = newPos.y + abs(yVel)/yVel*(abs(yFlag)/100);
-			yFlag = 0;
-		}
-		if (newPos != getPos()) {
-			if (world->isInMap(newPos)) world->moveEntity(getID(), newPos);
-			else kill();
-		}
+	xFlag += xVel;
+	yFlag += yVel;
+	Coordinate newPos = getPos();
+	if (abs(xFlag) >= 100) {
+		newPos.x += abs(xVel)/xVel;
+		xFlag = 0;
+	}
+	if (abs(yFlag) >= 100) {
+		newPos.y += abs(yVel)/yVel;
+		yFlag = 0;
+	}
+	if (newPos != getPos()) {
+		if (world->isInMap(newPos)) world->moveEntity(getID(), newPos);
+		else kill();
 	}
 }
 
@@ -398,11 +393,11 @@ void Boss::on_update() {
 			Coordinate arrowPos = Coordinate(getPos().x-1, getPos().y);
 			int yVel;
 			if ((fireTimer.getElapsed() % 20) % 3 == 0) yVel = 0;
-			else if ((fireTimer.getElapsed() % 20) % 3 == 1) yVel = -30;
-			else yVel = -20;
+			else if ((fireTimer.getElapsed() % 20) % 3 == 1) yVel = -15;
+			else yVel = -10;
 			auto tile = world->getTile(arrowPos);
 			if (!tile || tile->getEntities().size() == 0) {
-				std::shared_ptr<SkeletonArrow> arrow = std::make_shared<SkeletonArrow>(-300, yVel);
+				std::shared_ptr<SkeletonArrow> arrow = std::make_shared<SkeletonArrow>(-60, yVel);
 				arrow->init(eventManager);
 				world->registerEntity(arrow, arrowPos);
 			}
@@ -413,9 +408,9 @@ void Boss::on_update() {
 	}
 	else if (state == BossState::Attack2) {
 		fireTimer.tick();
-		if ((fireTimer.getElapsed() % 15) == 0) {
+		if ((fireTimer.getElapsed() % 25) == 0) {
 			for (int y=0; y<3; y++) {
-				std::shared_ptr<SkeletonArrow> arrow = std::make_shared<SkeletonArrow>(-300, 0);
+				std::shared_ptr<SkeletonArrow> arrow = std::make_shared<SkeletonArrow>(-75, 0);
 				arrow->init(eventManager);
 				world->registerEntity(arrow, Coordinate(getPos().x, getPos().y-y));
 			}
