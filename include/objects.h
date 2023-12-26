@@ -35,7 +35,7 @@ class Object : public EventHandler {
 
 class SpritedObject : public Object {
 	public:
-		virtual void draw(GeometryRenderer& painter) = 0;
+		virtual void draw(TextRenderManager& painter) = 0;
 };
 		
 

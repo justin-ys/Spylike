@@ -106,27 +106,20 @@ int TextRenderManager::getScreenHeight() {
 	return screen.height;
 }
 
-
-GeometryRenderer::GeometryRenderer(TextRenderManager& renderManager) : manager(renderManager) {}
-
-void GeometryRenderer::draw(Coordinate coord, char c, std::string layerName) {
-	manager.draw(coord, c, layerName);
-}
-
-void GeometryRenderer::drawString(Coordinate pos, std::string str, std::string layerName) {
+void TextRenderManager::drawString(Coordinate pos, std::string str, std::string layerName) {
 	Coordinate currentPos = pos;
 	for (const char& c : str) {
 		if (c == '\n') {
 			currentPos.y += 1;
 			currentPos.x = pos.x;
 		}
-		manager.draw(currentPos, c, layerName);
+		draw(currentPos, c, layerName);
 		currentPos.x += 1;
 	}
 }
 		
 
-void GeometryRenderer::drawLine(Coordinate p1, Coordinate p2, char c, std::string layerName) {
+void TextRenderManager::drawLine(Coordinate p1, Coordinate p2, char c, std::string layerName) {
 	int deltaX = p2.x - p1.x;
 	int deltaY = p2.y - p1.y;
 	int slopeY;
@@ -144,33 +137,25 @@ void GeometryRenderer::drawLine(Coordinate p1, Coordinate p2, char c, std::strin
 	Coordinate currentPos = p1;
 	int yCounter = 0;
 	for (int x=0; abs(x)<abs(deltaX)+1; x+=signX) {
-		manager.draw(currentPos, c, layerName);
+		draw(currentPos, c, layerName);
 		yCounter += slopeY;
 		int lastY = currentPos.y;
 		currentPos.y = p1.y + ((yCounter + 5*signY)/10);
 		int lastDelta = abs(currentPos.y - lastY);
 		if (lastDelta > 1) {
 			for (int y=0; y<=lastDelta; y++) {
-				manager.draw(Coordinate(currentPos.x, currentPos.y-(y*signY)), c, layerName);
+				draw(Coordinate(currentPos.x, currentPos.y-(y*signY)), c, layerName);
 			}
 		}
 		currentPos.x += signX;
 	}
 }
 
-void GeometryRenderer::drawBox(Coordinate p1, Coordinate p2, std::string layerName) {
+void TextRenderManager::drawBox(Coordinate p1, Coordinate p2, std::string layerName) {
 	Coordinate p3 = Coordinate(p1.x, p2.y);
 	Coordinate p4 = Coordinate(p2.x, p1.y);
 	drawLine(p1, p3, '|', layerName);
 	drawLine(p2, p4, '|', layerName);
 	drawLine(p2, p3, '-', layerName);
 	drawLine(p1, p4, '-', layerName);
-}
-
-int GeometryRenderer::getScreenWidth() {
-	return manager.getScreenWidth();
-}
-
-int GeometryRenderer::getScreenHeight() {
-	return manager.getScreenHeight();
 }

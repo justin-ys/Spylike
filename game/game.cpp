@@ -42,9 +42,9 @@ void GameManager::RunLevelTask::update() {
 		
 	}
 	for (int y=(origin.y+yOff); y>(origin.y+yOff-(2*manager.camera->getScreenHeight())); y--) {
-		for (int x=(origin.x-xOff); x<(origin.x-xOff+(2*manager.camera->getScreenWidth())); x++) {
+		for (int x=(origin.x-xOff); x<(origin.x-xOff+(2*manager.camera->getScreenWidth())); x++) 	{
 			if (manager.map->isInMap(Coordinate(x, y))) {
-				manager.map->drawTile(Coordinate(x, y), *manager.gameRenderer);
+				manager.map->drawTile(Coordinate(x, y), *manager.camera);
 			}
 		}
 		
@@ -52,8 +52,8 @@ void GameManager::RunLevelTask::update() {
 	//manager.menuRenderer->drawBox(Coordinate(0, 0), Coordinate(manager.menuManager->getScreenWidth(), manager.menuManager->getScreenHeight()), "Overlay");
 	//manager.menuManager->renderToScreen();
 	manager.camera->toggleAbsolute();
-	manager.gameRenderer->drawString(Coordinate(0, 0), "Health: " + std::to_string(manager.playerHealth), "UI");
-	manager.gameRenderer->drawString(Coordinate(0, 1), "Time elapsed: " + formatSeconds(manager.scheduler.timeElapsed()), "UI");
+	manager.camera->drawString(Coordinate(0, 0), "Health: " + std::to_string(manager.playerHealth), "UI");
+	manager.camera->drawString(Coordinate(0, 1), "Time elapsed: " + formatSeconds(manager.scheduler.timeElapsed()), "UI");
 	manager.camera->toggleAbsolute();
 	manager.camera->renderToScreen();
 	manager.inputManager->update();
@@ -64,9 +64,9 @@ void GameManager::TickTask::update() {}
 
 void GameManager::MenuTask::update() {
 	manager.menuManager->clearScreen();
-	manager.activeMenu->draw(*manager.menuRenderer);
+	manager.activeMenu->draw(*manager.menuManager);
 	manager.activeMenu->update();
-	manager.menuRenderer->drawBox(Coordinate(0, 0), Coordinate(manager.menuManager->getScreenWidth(), manager.menuManager->getScreenHeight()-1), "Overlay");
+	manager.menuManager->drawBox(Coordinate(0, 0), Coordinate(manager.menuManager->getScreenWidth(), manager.menuManager->getScreenHeight()-1), "Overlay");
 	manager.menuManager->renderToScreen();
 	manager.menuInputManager->update();
 }
@@ -189,11 +189,7 @@ void GameManager::run() {
 	menuEventManager = std::make_shared<EventManager>();
 	inputManager = std::make_shared<InputManager>(eventManager, screen);
 	menuInputManager = std::make_shared<InputManager>(menuEventManager, screen);
-	GeometryRenderer theRenderer = GeometryRenderer(*camera);
-	gameRenderer = &theRenderer;
-	GeometryRenderer theMenuRenderer = GeometryRenderer(*menuManager);
-	menuRenderer = &theMenuRenderer;
-
+	
 	audioManager = std::make_shared<MiniaudioManager>("game/resource/audio/");
 
 	Level level = load_from_file("game/resource/levels/1-3.spm");

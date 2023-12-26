@@ -7,7 +7,7 @@
 class Lava : public TileEntity {
 	void on_event(Event& e) override {}
 	void on_update() override;
-	void draw(GeometryRenderer& painter) override;
+	void draw(Camera& painter) override;
 	void on_collide(std::shared_ptr<TileEntity> collider) override;
 	int count = 0;
 	Timer moveTimer;
@@ -18,7 +18,7 @@ class Lava : public TileEntity {
 class LavaGenerator : public TileEntity {
 	void on_event(Event& e) override {}
 	void on_update() override;
-	void draw(GeometryRenderer& painter) override;
+	void draw(Camera& painter) override;
 	void on_collide(std::shared_ptr<TileEntity> collider) override;
 	public:
 		LavaGenerator() : TileEntity(true) {}
@@ -27,7 +27,7 @@ class LavaGenerator : public TileEntity {
 class Spike : public TileEntity {
 	void on_event(Event& e) override {}
 	void on_update() override {}
-	void draw(GeometryRenderer& painter) override;
+	void draw(Camera& painter) override;
 	void on_collide(std::shared_ptr<TileEntity> collider) override;
 	public:
 		Spike() : TileEntity(true) {}

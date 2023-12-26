@@ -60,27 +60,17 @@ class TextRenderManager {
         TextRenderManager(TerminalScreen& screen, std::vector<RenderLayer> layers);
         virtual void draw(Coordinate coord, char c, std::string layerName);
         void renderToScreen();
-	void clearLayer(std::string layerName);
+		void clearLayer(std::string layerName);
         void clearCache();
         void clearScreen();
-	void lock() { locked = true; } // prevents any new draws from taking effect - pauses the camera
-	void unlock() { locked = false; }
-    int getScreenWidth();
-    int getScreenHeight();
-    std::string getSnapshot();
-};
-
-class GeometryRenderer {
-	protected:
-		TextRenderManager& manager;
-	public:
-		GeometryRenderer(TextRenderManager& renderManager);
-		void draw(Coordinate coord, char c, std::string layerName);
+		void lock() { locked = true; } // prevents any new draws from taking effect - pauses the camera
+		void unlock() { locked = false; }
 		void drawString(Coordinate pos, std::string str, std::string layerName);
 		void drawLine(Coordinate p1, Coordinate p2, char c, std::string layerName);
 		void drawBox(Coordinate p1, Coordinate p2, std::string layerName);
-		int getScreenWidth();
-		int getScreenHeight();
+    	int getScreenWidth();
+    	int getScreenHeight();
+    	std::string getSnapshot();
 };
 
 #endif

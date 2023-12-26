@@ -3,7 +3,7 @@
 #include <memory>
 #include <cstdlib>
 
-void Lava::draw(GeometryRenderer& painter) {
+void Lava::draw(Camera& painter) {
 	painter.draw(getPos(), '#', "Entity");
 }
 
@@ -28,7 +28,7 @@ void Lava::on_update() {
 
 }
 
-void LavaGenerator::draw(GeometryRenderer& painter) {
+void LavaGenerator::draw(Camera& painter) {
 	painter.draw(getPos(), '#', "Entity");
 }
 
@@ -47,7 +47,7 @@ void LavaGenerator::on_update() {
 	}
 }
 
-void Spike::draw(GeometryRenderer& painter) {
+void Spike::draw(Camera& painter) {
 	painter.draw(getPos(), '#', "Entity");
 }
 

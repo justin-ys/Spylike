@@ -1,5 +1,5 @@
 #include "geometry.h"
 
-void Wall::draw(GeometryRenderer& painter) {
+void Wall::draw(Camera& painter) {
 	painter.draw(Coordinate(getPos().x, getPos().y), '~', "Entity");
 }

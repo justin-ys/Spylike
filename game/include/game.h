@@ -97,8 +97,6 @@ class GameManager : public EventHandler, public std::enable_shared_from_this<Gam
 	std::shared_ptr<InputManager> menuInputManager;
 	std::shared_ptr<Camera> camera;
 	std::shared_ptr<TextRenderManager> menuManager;
-	GeometryRenderer* gameRenderer;
-	GeometryRenderer* menuRenderer;
 	std::shared_ptr<Menu> activeMenu;
 	std::shared_ptr<LevelMap> map;
 	std::shared_ptr<AudioManager> audioManager;

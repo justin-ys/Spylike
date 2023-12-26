@@ -3,6 +3,7 @@
 
 #include "objects.h"
 #include "rendering.h"
+#include "camera.h"
 #include "logger.h"
 #include <map>
 #include <vector>
@@ -24,7 +25,9 @@ typedef int EntityID;
 
 enum WorldType { Roguelike, Platform };
 
-class TileEntity : public SpritedObject, public std::enable_shared_from_this<TileEntity> {
+class Camera; // forward dec defined in camera.h
+
+class TileEntity : public Object, public std::enable_shared_from_this<TileEntity> {
 	std::shared_ptr<TileEntity> parent = nullptr;
 	std::vector<std::shared_ptr<TileEntity>> children;
 	bool alive = true;
@@ -47,6 +50,7 @@ class TileEntity : public SpritedObject, public std::enable_shared_from_this<Til
 		bool isAlive();
 		Coordinate getPos();
 		virtual void on_collide(std::shared_ptr<TileEntity> collider) {}
+		virtual void draw(Camera& painter) = 0;
 		TileEntity(bool collidable) : isCollidable{collidable} {}
 };
 
@@ -78,7 +82,7 @@ class LevelMap : public std::enable_shared_from_this<LevelMap> {
 		LevelMap(int width, int height, std::shared_ptr<EventManager> eventManager, IDBlock idRange, WorldType wt=Platform);
 		std::shared_ptr<Tile> getTile(Coordinate coord);
 		void updateTile(Coordinate coord);
-		void drawTile(Coordinate coord, GeometryRenderer& painter);
+		void drawTile(Coordinate coord, Camera& painter);
 		void destroyTile(Coordinate coord);
 		std::shared_ptr<TileEntity> findEntity(int entityID);
 		// Searches for entities of type Ent within range tiles of origin and returns them. If range=0, searches everything

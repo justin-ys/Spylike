@@ -122,7 +122,7 @@ void Player::on_event(Event& e) {
 	}
 }
 
-void Player::draw(GeometryRenderer& painter) {
+void Player::draw(Camera& painter) {
 	if (state == PState::Hurt) { 
 		painter.drawString(getPos(), hurtSprite.getCurrentFrame(), "Entity");
 		hurtSprite.nextFrame();
@@ -251,7 +251,7 @@ void Goblin::on_update() {
 	}
 }
 			
-void Goblin::draw(GeometryRenderer& painter) {
+void Goblin::draw(Camera& painter) {
 	if (state == GobState::Found) {
 		painter.draw(Coordinate(getPos().x, getPos().y-1), '!', "Effect");
 	}
@@ -273,7 +273,7 @@ void Goblin::hurt(int damage) {
 	if (health <= 0) kill();
 }
 
-void Skeleton::draw(GeometryRenderer& painter) {
+void Skeleton::draw(Camera& painter) {
 	painter.draw(getPos(), '&', "Entity");
 }
 
@@ -315,7 +315,7 @@ void Skeleton::hurt(int damage) {
 	health -= damage;
 }
 
-void SkeletonArrow::draw(GeometryRenderer& painter) {
+void SkeletonArrow::draw(Camera& painter) {
 	painter.draw(getPos(), '#', "Entity");
 }
 
@@ -354,7 +354,7 @@ void Boss::on_init() {
 	}
 }
 
-void Boss::draw(GeometryRenderer& painter) {
+void Boss::draw(Camera& painter) {
 	painter.draw(getPos(), '/', "Entity");
 	painter.draw(Coordinate(getPos().x+1, getPos().y), '\\', "Entity");
 	painter.draw(Coordinate(getPos().x+1, getPos().y-1), ')', "Entity");

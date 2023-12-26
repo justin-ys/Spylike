@@ -11,7 +11,7 @@ class ManagedEntity : public TileEntity {
 	public:
 		TileEntity& parent;
 		void on_update();
-		void draw(GeometryRenderer& painter);
+		void draw(Camera& painter);
 		void on_event(Event& e);
 };
 

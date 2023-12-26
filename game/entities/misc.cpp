@@ -26,7 +26,7 @@ void Key::on_update() {
 	}
 }
 
-void Key::draw(GeometryRenderer& painter) {
+void Key::draw(Camera& painter) {
 	switch (state) {
 		case (KeyState::Idle): {
 			painter.draw(getPos(), '%', "Entity");
@@ -65,7 +65,7 @@ void Door::on_update() {
 	}
 }
 
-void Door::draw(GeometryRenderer& painter) {
+void Door::draw(Camera& painter) {
 	painter.draw(getPos(), '=', "Entity");
 	if (state == DoorState::FailedOpen) {
 		painter.drawString(Coordinate(getPos().x-10, getPos().y-1), "Get a key first!", "Effect");

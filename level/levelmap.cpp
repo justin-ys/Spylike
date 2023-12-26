@@ -67,8 +67,10 @@ std::vector<std::shared_ptr<TileEntity>> Tile::getEntities() {
 }
 
 void TileEntity::kill() {
-	world->removeEntity(shared_from_this());
-	alive = false;
+	if (alive) {
+		world->removeEntity(shared_from_this());
+		alive = false;
+	}
 }
 
 bool TileEntity::isAlive() {
@@ -134,16 +136,18 @@ void LevelMap::destroyTile(Coordinate coord) {
 }
 
 void LevelMap::removeEntity(std::shared_ptr<TileEntity> ent) {
-	auto currentTile = getTile(ent->tile->pos); // entity's tile is const
-	if (currentTile) {
-		currentTile->removeEntity(ent->getID());
-		if (currentTile->getEntities().size() == 0) {
-			destroyTile(currentTile->pos);
+	if (ent) {
+		auto currentTile = getTile(ent->tile->pos); // entity's tile is const
+		if (currentTile) {
+			currentTile->removeEntity(ent->getID());
+			if (currentTile->getEntities().size() == 0) {
+				destroyTile(currentTile->pos);
+			}
+			for (auto child : ent->getChildren()) {
+				removeEntity(child);
+			}
+			trackedEntities.erase(ent->getID());
 		}
-		for (auto child : ent->getChildren()) {
-			removeEntity(child);
-		}
-		trackedEntities.erase(ent->getID());
 	}
 }
 
@@ -228,7 +232,7 @@ void LevelMap::updateTile(Coordinate coord) {
 	}
 }
 
-void LevelMap::drawTile(Coordinate coord, GeometryRenderer& painter) {
+void LevelMap::drawTile(Coordinate coord, Camera& painter) {
 	std::shared_ptr<Tile> tile = getTile(coord);
 	if (tile != nullptr) {
 		for (auto ent : tile->getEntities()) {

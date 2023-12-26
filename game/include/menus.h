@@ -19,7 +19,7 @@ class MenuButton : public SpritedObject {
 		const int height;
 		Coordinate pos; // top left
 		MenuButton(Coordinate pos, int width, int height, std::string buttonText, std::string buttonID);
-		void draw(GeometryRenderer& painter);
+		void draw(TextRenderManager& painter);
 		void click();
 		std::string getButtonID();
 };
@@ -36,7 +36,7 @@ class Menu : public SpritedObject {
 	void on_init() override;
 	public:
 		Menu(int width, int height): width{width}, height{height} {}
-		virtual void draw(GeometryRenderer& painter);
+		virtual void draw(TextRenderManager& painter);
 		void addButton(MenuButton button);
 		void setSelection(std::string buttonID);
 		void selectNext();
@@ -46,19 +46,19 @@ class Menu : public SpritedObject {
 class PauseMenu : public Menu {
 	public:
 		PauseMenu(int width, int height): Menu(width, height) {}
-		void draw(GeometryRenderer& painter) override;
+		void draw(TextRenderManager& painter) override;
 };
 
 class GameOverMenu : public Menu {
 	public:
 		GameOverMenu(int width, int height): Menu(width, height) {}
-		void draw(GeometryRenderer& painter) override;
+		void draw(TextRenderManager& painter) override;
 };
 
 class StartMenu : public Menu {
 	public:
 		StartMenu(int width, int height): Menu(width, height) {}
-		void draw(GeometryRenderer& painter) override;
+		void draw(TextRenderManager& painter) override;
 };
 
 namespace SpylikeMenus {
