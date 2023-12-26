@@ -5,12 +5,13 @@
 #include <algorithm>
 #include <memory>
 #include <stdlib.h>
+#include <cmath>
 
 extern SpylikeLogger LOGGER;
 
 void Player::on_init() {
 	eventManager->subscribe(shared_from_this(), "INPUT_KeyPress");
-	SpylikeEvents::CameraEvent ce("CAMERA_Move", getPos());
+	SpylikeEvents::CameraEvent ce("CAMERA_MoveCenter", getPos());
 	eventManager->emit(ce);
 }
 
@@ -81,11 +82,7 @@ void Player::on_event(Event& e) {
 						newPos.x++;
 					}
 				}
-				bool res = world->moveEntity(getID(), newPos);
-				if (res) {
-					SpylikeEvents::CameraEvent ce("CAMERA_Move", newPos);
-					eventManager->emit(ce);
-				}
+				world->moveEntity(getID(), newPos);
 			}
 		}
 		else {
@@ -104,8 +101,6 @@ void Player::on_event(Event& e) {
 				}
 				bool res = world->moveEntity(getID(), newPos);
 				if (res) {
-					SpylikeEvents::CameraEvent ce("CAMERA_Move", newPos);
-					eventManager->emit(ce);
 					slideTimer.reset();
 				}
 			}
@@ -123,6 +118,17 @@ void Player::on_event(Event& e) {
 }
 
 void Player::draw(Camera& painter) {
+	if (world->worldType == WorldType::Platform) {
+		int yDist = getPos().y - painter.getOrigin().y;
+		nextCamPos = Coordinate(getPos().x - painter.getScreenWidth()/2, painter.getOrigin().y);
+		changePosFlag = true;
+		if (yDist > 3*(painter.getScreenHeight()/4)) {
+			nextCamPos.y = painter.getOrigin().y + painter.getScreenHeight()/4;
+		}
+		else if (yDist < painter.getScreenHeight()/4) {
+			nextCamPos.y = painter.getOrigin().y - painter.getScreenHeight()/4;
+		}
+	}
 	if (state == PState::Hurt) { 
 		painter.drawString(getPos(), hurtSprite.getCurrentFrame(), "Entity");
 		hurtSprite.nextFrame();
@@ -137,7 +143,16 @@ void Player::draw(Camera& painter) {
 }
 
 void Player::on_update() {
-	if (world->worldType == WorldType::Platform) {
+	if (world->worldType == WorldType::Roguelike) {
+		SpylikeEvents::CameraEvent ce("CAMERA_MoveCenter", getPos());
+		eventManager->emit(ce);
+	}
+	else if (world->worldType == WorldType::Platform) {
+		if (changePosFlag && world->active) {
+			SpylikeEvents::CameraEvent ce("CAMERA_Move", nextCamPos);
+			eventManager->emit(ce);
+			changePosFlag = false;
+		}
 		moveTimer.tick();
 		slideTimer.tick();
 		if (yVel > 0 && (moveTimer.getElapsed() > 3/yVel)) {
@@ -145,8 +160,6 @@ void Player::on_update() {
 			bool res = world->moveEntity(getID(), newPos);
 			if (res) {
 				yVel--;
-				SpylikeEvents::CameraEvent ce("CAMERA_MoveUp", newPos);
-				eventManager->emit(ce);
 			}
 			else yVel = 0;
 			slideTimer.reset();
@@ -185,6 +198,11 @@ void Player::on_update() {
 			attackTimer.tick();
 			if (attackTimer.getElapsed() > 2) state = PState::Idle;
 		}
+	}
+	
+	if (!changePosFlag && world->active) {
+		SpylikeEvents::CameraEvent ce("CAMERA_MoveCenterH", getPos());
+		eventManager->emit(ce);
 	}
 }
 

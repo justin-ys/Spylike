@@ -29,20 +29,23 @@ std::string formatSeconds(int seconds) {
 }
 
 void GameManager::RunLevelTask::update() {
+	auto& theMap = manager.map;
 	manager.camera->clearScreen();
 	Coordinate origin = manager.camera->getOrigin();
-	int yOff = manager.camera->getYOffset();
-	int xOff = manager.camera->getXOffset();
-	for (int y=(origin.y+yOff); y>(origin.y+yOff-(2*manager.camera->getScreenHeight())); y--) {
-		for (int x=(origin.x-xOff); x<(origin.x-xOff+(2*manager.camera->getScreenWidth())); x++) {
-			if (manager.map->isInMap(Coordinate(x, y))) {
-				manager.map->updateTile(Coordinate(x, y));
+	for (int y=origin.y; y<(origin.y+manager.camera->getScreenHeight()); y++) {
+		for (int x=origin.x; x<(origin.x+manager.camera->getScreenWidth()); x++) {
+			if (theMap->isInMap(Coordinate(x, y))) {
+				theMap->updateTile(Coordinate(x, y));
+			}
+			if (manager.killUpdates) {
+				manager.killUpdates = false;
+				return;
 			}
 		}
 		
 	}
-	for (int y=(origin.y+yOff); y>(origin.y+yOff-(2*manager.camera->getScreenHeight())); y--) {
-		for (int x=(origin.x-xOff); x<(origin.x-xOff+(2*manager.camera->getScreenWidth())); x++) 	{
+	for (int y=origin.y; y<(origin.y+manager.camera->getScreenHeight()); y++) {
+		for (int x=origin.x; x<(origin.x+manager.camera->getScreenWidth()); x++) {
 			if (manager.map->isInMap(Coordinate(x, y))) {
 				manager.map->drawTile(Coordinate(x, y), *manager.camera);
 			}
@@ -57,7 +60,6 @@ void GameManager::RunLevelTask::update() {
 	manager.camera->toggleAbsolute();
 	manager.camera->renderToScreen();
 	manager.inputManager->update();
-
 }
 
 void GameManager::TickTask::update() {}
@@ -87,6 +89,8 @@ void GameManager::quit() {
 }
 
 void GameManager::loadLevel(Level level) {
+	if (map) map->active = false;
+	killUpdates = true;
 	LOGGER.log("Loading level", DEBUG);
 	eventManager->clear();
 	eventManager->subscribe(camera, "CAMERA_MoveUp");
@@ -94,6 +98,9 @@ void GameManager::loadLevel(Level level) {
 	eventManager->subscribe(camera, "CAMERA_MoveLeft");
 	eventManager->subscribe(camera, "CAMERA_MoveRight");
 	eventManager->subscribe(camera, "CAMERA_Move");
+	eventManager->subscribe(camera, "CAMERA_MoveCenter");
+	eventManager->subscribe(camera, "CAMERA_MoveCenterH");
+	eventManager->subscribe(camera, "CAMERA_MoveCenterV");
 	eventManager->subscribe(audioManager, "AUDIO_PlayMusic");
 	eventManager->subscribe(audioManager, "AUDIO_PauseMusic");
 	eventManager->subscribe(shared_from_this(), "MENU_Show");
@@ -181,7 +188,6 @@ void GameManager::on_event(Event& e) {
 void GameManager::run() {
 	std::vector<RenderLayer> layers {RenderLayer("Entity", 1), RenderLayer("Effect", 2), RenderLayer("UI", 3), RenderLayer("Overlay", 4)};
 	camera = std::make_shared<Camera>(screen, 80, 30, layers);
-	camera->setOffset(30, 20);
 	menuManager = std::make_shared<TextRenderManager>(screen, layers);
 
 

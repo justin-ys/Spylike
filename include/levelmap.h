@@ -76,6 +76,7 @@ class LevelMap : public std::enable_shared_from_this<LevelMap> {
 	int currentID;
 	int getNextID();
 	public:
+		bool active = true;
 		const int width;
 		const int height;
 		const WorldType worldType;

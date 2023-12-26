@@ -11,13 +11,12 @@ Camera::Camera(TerminalScreen& screen, int width, int height, std::vector<Render
 }
 
 void Camera::setOrigin(Coordinate pos) {origin = pos;}
-void Camera::setOffset(int x, int y) {offsetX = x; offsetY = y;}
 
 Coordinate Camera::getOrigin() {return origin;}
 
 void Camera::draw(Coordinate coord, char c, std::string layerName) {
 	if (!absolute) {
-		Coordinate cameraMapped(coord.x - origin.x + offsetX, coord.y - origin.y + offsetY);
+		Coordinate cameraMapped(coord.x - origin.x, coord.y - origin.y);
 		if ((cameraMapped.x >= 0) && (cameraMapped.y >= 0)) {
 			if ((cameraMapped.x <= width) && (cameraMapped.y <= height)) {
 				TextRenderManager::draw(cameraMapped, c, layerName);
@@ -55,6 +54,18 @@ void Camera::on_event(Event& e) {
 	if (e.type == "CAMERA_Move") {
 		SpylikeEvents::CameraEvent& ce = dynamic_cast<SpylikeEvents::CameraEvent&>(e);
 		setOrigin(ce.pos);
+	}
+	if (e.type == "CAMERA_MoveCenter") {
+		SpylikeEvents::CameraEvent& ce = dynamic_cast<SpylikeEvents::CameraEvent&>(e);
+		setOrigin(Coordinate(ce.pos.x-getScreenWidth()/2, ce.pos.y-getScreenHeight()/2));
+	}
+	if (e.type == "CAMERA_MoveCenterH") {
+		SpylikeEvents::CameraEvent& ce = dynamic_cast<SpylikeEvents::CameraEvent&>(e);
+		setOrigin(Coordinate(ce.pos.x-getScreenWidth()/2, origin.y));
+	}
+	if (e.type == "CAMERA_MoveCenterV") {
+		SpylikeEvents::CameraEvent& ce = dynamic_cast<SpylikeEvents::CameraEvent&>(e);
+		setOrigin(Coordinate(origin.x, ce.pos.y-getScreenHeight()/2));
 	}
 }
 	

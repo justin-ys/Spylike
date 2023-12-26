@@ -30,6 +30,8 @@ class Player : public Character {
 	void on_init() override;
 	void draw(Camera& painter) override;
 	void on_collide(std::shared_ptr<TileEntity> collider) override;
+	Coordinate nextCamPos = Coordinate(-1, -1);
+	bool changePosFlag = false;
 	public:
 		void hurt(int damage) override;
 };
