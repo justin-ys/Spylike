@@ -51,9 +51,7 @@ void Player::on_event(Event& e) {
 									else if (getPos().x > newCharPos.x) newCharPos.x--;
 									else if (getPos().y > newCharPos.y) newCharPos.y--;
 									else newCharPos.y++;
-									if (world->isInMap(newCharPos)) {
-										world->moveEntity(character->getID(), newCharPos);
-									}
+									world->moveEntity(character->getID(), newCharPos);
 								}
 							}
 					}
@@ -83,12 +81,10 @@ void Player::on_event(Event& e) {
 						newPos.x++;
 					}
 				}
-				if (world->isInMap(newPos)) {
-					bool res = world->moveEntity(getID(), newPos);
-					if (res) {
-						SpylikeEvents::CameraEvent ce("CAMERA_Move", newPos);
-						eventManager->emit(ce);
-					}
+				bool res = world->moveEntity(getID(), newPos);
+				if (res) {
+					SpylikeEvents::CameraEvent ce("CAMERA_Move", newPos);
+					eventManager->emit(ce);
 				}
 			}
 		}
@@ -106,13 +102,11 @@ void Player::on_event(Event& e) {
 						xVel = 1;
 					}
 				}
-				if (world->isInMap(newPos)) {
-					bool res = world->moveEntity(getID(), newPos);
-					if (res) {
-						SpylikeEvents::CameraEvent ce("CAMERA_Move", newPos);
-						eventManager->emit(ce);
-						slideTimer.reset();
-					}
+				bool res = world->moveEntity(getID(), newPos);
+				if (res) {
+					SpylikeEvents::CameraEvent ce("CAMERA_Move", newPos);
+					eventManager->emit(ce);
+					slideTimer.reset();
 				}
 			}
 			else if (ke.c == 'w' || ke.c == ' ' && (yVel == 0)) {
@@ -148,13 +142,11 @@ void Player::on_update() {
 		slideTimer.tick();
 		if (yVel > 0 && (moveTimer.getElapsed() > 3/yVel)) {
 			Coordinate newPos = Coordinate(getPos().x+xVel, getPos().y-1);
-			if (world->isInMap(newPos)) {
-				bool res = world->moveEntity(getID(), newPos);
-				if (res) {
-					yVel--;
-					SpylikeEvents::CameraEvent ce("CAMERA_MoveUp", newPos);
-					eventManager->emit(ce);
-				}
+			bool res = world->moveEntity(getID(), newPos);
+			if (res) {
+				yVel--;
+				SpylikeEvents::CameraEvent ce("CAMERA_MoveUp", newPos);
+				eventManager->emit(ce);
 			}
 			else yVel = 0;
 			slideTimer.reset();
@@ -163,14 +155,12 @@ void Player::on_update() {
 		else {
 			if (moveTimer.getElapsed() > 2) {
 				Coordinate below = Coordinate(getPos().x, getPos().y+1);
-				if (world->isInMap(below)) {
-					bool res = world->moveEntity(getID(), below);
-					if (res && slideTimer.getElapsed() > 2) {
-						Coordinate newPos = Coordinate(below.x+xVel, below.y);
-						bool res = world->moveEntity(getID(), newPos);
-						if (!res) xVel = 0;
-						slideTimer.reset();
-					}
+				bool res = world->moveEntity(getID(), below);
+				if (res && slideTimer.getElapsed() > 2) {
+					Coordinate newPos = Coordinate(below.x+xVel, below.y);
+					bool res = world->moveEntity(getID(), newPos);
+					if (!res) xVel = 0;
+					slideTimer.reset();
 				}
 				moveTimer.reset();
 			}
@@ -244,7 +234,7 @@ void Goblin::on_update() {
 					else xDir = 1;
 					if (world->worldType == WorldType::Platform) yDir = 0;
 					Coordinate newPos(getPos().x + xDir, getPos().y + yDir);
-					if (world->isInMap(newPos)) world->moveEntity(getID(), newPos);
+					world->moveEntity(getID(), newPos);
 				}
 				else state = GobState::Idle;
 			}
@@ -254,10 +244,8 @@ void Goblin::on_update() {
 	if (world->worldType == WorldType::Platform) {
 		if (moveTimer.getElapsed() > 2) {
 			Coordinate below = Coordinate(getPos().x, getPos().y+1);
-			if (world->isInMap(below)) {
-				bool res = world->moveEntity(getID(), below);
-				falling = res;
-			}
+			bool res = world->moveEntity(getID(), below);
+			falling = res;
 			moveTimer.reset();
 		}
 	}
@@ -344,8 +332,8 @@ void SkeletonArrow::on_update() {
 		yFlag = 0;
 	}
 	if (newPos != getPos()) {
-		if (world->isInMap(newPos)) world->moveEntity(getID(), newPos);
-		else kill();
+		bool res = world->moveEntity(getID(), newPos);
+		if (!res) kill();
 	}
 }
 

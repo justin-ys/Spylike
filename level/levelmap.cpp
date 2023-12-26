@@ -167,6 +167,7 @@ std::shared_ptr<TileEntity> LevelMap::findEntity(int entityID) {
 
 bool LevelMap::moveEntity(std::shared_ptr<TileEntity> ent, Coordinate pos) {
 	LOGGER.log("Moving entity " + std::to_string(ent->getID()) + " to coordinate (" + std::to_string(pos.x) + "," + std::to_string(pos.y) + ")", DEBUG);
+	if (!isInMap(pos)) return false;
 	if (ent) {
 		std::vector<std::shared_ptr<TileEntity>> movedChildren;
 		bool result = false;
