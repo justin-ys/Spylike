@@ -12,11 +12,12 @@ void LevelTransition::on_collide(std::shared_ptr<TileEntity> collider) {
 void Key::on_collide(std::shared_ptr<TileEntity> collider) {
 	std::shared_ptr<Player> player = std::dynamic_pointer_cast<Player>(collider);
 	if (player) {
+		isCollidable = false;
 		Event ev("GAME_KeyCollect");
 		eventManager->emit(ev);
+		collectedTimer.reset();
+		state = KeyState::Collected;
 	}
-	collectedTimer.reset();
-	state = KeyState::Collected;
 }
 
 void Key::on_update() {

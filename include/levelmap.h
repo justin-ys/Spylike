@@ -34,8 +34,7 @@ class TileEntity : public Object, public std::enable_shared_from_this<TileEntity
 	protected:
 		std::shared_ptr<LevelMap> world;
 	public:
-	    // getter/setter
-		const bool isCollidable;
+		bool isCollidable;
 		const Tile* tile = nullptr;
 		void setTile(Tile* tileObj);
 		void setParent(std::shared_ptr<TileEntity> ent);
