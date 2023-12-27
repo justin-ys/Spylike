@@ -14,6 +14,32 @@ void Camera::setOrigin(Coordinate pos) {origin = pos;}
 
 Coordinate Camera::getOrigin() {return origin;}
 
+#ifdef USE_NCURSESW
+void Camera::draw(Coordinate coord, char c, std::string layerName) {
+	LOGGER.log("huh??", DEBUG);
+	if (!absolute) {
+		Coordinate cameraMapped(coord.x - origin.x, coord.y - origin.y);
+		if ((cameraMapped.x >= 0) && (cameraMapped.y >= 0)) {
+			if ((cameraMapped.x <= width) && (cameraMapped.y <= height)) {
+				TextRenderManager::draw(cameraMapped, c, layerName);
+			}
+		}
+	}
+	else drawAbsolute(coord, c, layerName);
+}
+
+void Camera::draw(Coordinate coord, std::wstring c, std::string layerName) {
+	if (!absolute) {
+		Coordinate cameraMapped(coord.x - origin.x, coord.y - origin.y);
+		if ((cameraMapped.x >= 0) && (cameraMapped.y >= 0)) {
+			if ((cameraMapped.x <= width) && (cameraMapped.y <= height)) {
+				TextRenderManager::draw(cameraMapped, c, layerName);
+			}
+		}
+	}
+	else drawAbsolute(coord, c, layerName);
+}
+#else
 void Camera::draw(Coordinate coord, char c, std::string layerName) {
 	if (!absolute) {
 		Coordinate cameraMapped(coord.x - origin.x, coord.y - origin.y);
@@ -29,6 +55,8 @@ void Camera::draw(Coordinate coord, char c, std::string layerName) {
 void Camera::drawAbsolute(Coordinate coord, char c, std::string layerName) {
 	TextRenderManager::draw(coord, c, layerName);
 }
+
+#endif
 
 void Camera::toggleAbsolute() {
 	if (absolute) absolute = false;

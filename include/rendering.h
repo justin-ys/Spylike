@@ -51,7 +51,11 @@ struct coordHash {
 
 class TextRenderManager {
     TerminalScreen& screen;
+    #ifdef USE_NCURSESW
+    typedef std::unordered_map<Coordinate, std::wstring, coordHash> TextLayer;
+    #else
     typedef std::unordered_map<Coordinate, char, coordHash> TextLayer;
+    #endif
     std::unordered_map<std::string, TextLayer> layersCache;
     //std::unordered_map<Coordinate, bool, coordHash> toUpdate;
     std::vector<std::string> orderedLayers;
@@ -59,6 +63,9 @@ class TextRenderManager {
     public:
         TextRenderManager(TerminalScreen& screen, std::vector<RenderLayer> layers);
         virtual void draw(Coordinate coord, char c, std::string layerName);
+        #ifdef USE_NCURSESW
+        virtual void draw(Coordinate coord, std::wstring c, std::string layerName);
+        #endif
         void renderToScreen();
 		void clearLayer(std::string layerName);
         void clearCache();
@@ -70,7 +77,11 @@ class TextRenderManager {
 		void drawBox(Coordinate p1, Coordinate p2, std::string layerName);
     	int getScreenWidth();
     	int getScreenHeight();
+    	#ifdef USE_NCURSESW
+    	std::wstring getSnapshot();
+    	#else
     	std::string getSnapshot();
+    	#endif
 };
 
 #endif

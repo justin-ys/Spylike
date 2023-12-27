@@ -7,7 +7,7 @@
 extern SpylikeLogger LOGGER;
 
 NcursesTerminalScreen::NcursesTerminalScreen(int w, int h) : TerminalScreen(w, h) {
-    setlocale(LC_ALL, "en_US.UTF-8");
+    setlocale(LC_ALL, "");
     initscr();
     cbreak();
     noecho();
@@ -23,6 +23,14 @@ void NcursesTerminalScreen::write(int x, int y, char c) {
 	assert(y <= height);
 	mvwaddch(win, y, x, c);
 }
+
+#ifdef USE_NCURSESW
+void NcursesTerminalScreen::write(int x, int y, std::wstring c) {
+	assert(x <= width);
+	assert(y <= height);
+	mvwaddwstr(win, y, x, c.c_str());
+}
+#endif
 
 void NcursesTerminalScreen::write(int x, int y, std::string s) {
 	assert(x <= width);

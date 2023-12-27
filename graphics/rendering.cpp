@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <algorithm>
 #include <cuchar>
+#include <cwchar>
 
 extern SpylikeLogger LOGGER;
 
@@ -19,12 +20,17 @@ TextRenderManager::TextRenderManager(TerminalScreen& scr, std::vector<RenderLaye
     for (const RenderLayer layer: layers_sorted)
     {
         orderedLayers.insert(orderedLayers.end(), layer.name);
-        TextLayer layercells = {{Coordinate(0,0), '\0'}};
+        #if USE_NCURSESW
+        TextLayer layercells = {{Coordinate(0,0), L"\0"}};
+        #else
+        TextLayer layercells = {{Coordinate(0,0), L'\0'}};
+        #endif
         layersCache.insert({layer.name, layercells}); // Create blank layer in cache so we don't have to worry about initalizing it later
     }
 }
 
-void TextRenderManager::draw(Coordinate coord, char c, std::string layerName) {
+#ifdef USE_NCURSESW
+void TextRenderManager::draw(Coordinate coord, std::wstring c, std::string layerName) {
     if (!locked) {
 	    if (coord.x <= screen.width && coord.y <= screen.height) {
 		    assert(find(orderedLayers.begin(), orderedLayers.end(), layerName) != orderedLayers.end());
@@ -39,9 +45,36 @@ void TextRenderManager::draw(Coordinate coord, char c, std::string layerName) {
     }
 }
 
+void TextRenderManager::draw(Coordinate coord, char c, std::string layerName) {
+    std::wstring converted(1, L'\0');
+    mbstowcs(&converted[0], &c, 1);
+    TextRenderManager::draw(coord, converted, layerName);
+}
+
+#else
+void TextRenderManager::draw(Coordinate coord, char c, std::string layerName) {
+    if (!locked) {
+	    if (coord.x <= screen.width && coord.y <= screen.height) {
+		    assert(find(orderedLayers.begin(), orderedLayers.end(), layerName) != orderedLayers.end());
+		    TextLayer& layer = layersCache[layerName];
+		    //LOGGER.log(std::to_string(coord.x), DEBUG);
+		    if (layer[coord] != c) {
+		    	layer[coord] = c;
+			//toUpdate[coord] = true;
+		    }
+		    //LOGGER.log("\n" + getSnapshot(), DEBUG);
+	    }
+    }
+}
+#endif
+
 void TextRenderManager::clearLayer(std::string layerName) {
 	layersCache.erase(layerName);
+	#if USE_NCURSESW
+	TextLayer layercells = {{Coordinate(0,0), L"\0"}};
+	#else
 	TextLayer layercells = {{Coordinate(0,0), '\0'}};
+	#endif
 	layersCache.insert({layerName, layercells});
 }
 
@@ -60,8 +93,12 @@ void TextRenderManager::renderToScreen() {
     for (const std::string layerName : orderedLayers) {
         for (const auto node : layersCache[layerName]) {
                 Coordinate coord = node.first;
+                #ifdef USE_NCURSESW
+                if (node.second != L"\0") {
+                #else
                 if (node.second != '\0') {
-                    screen.write(coord.x, coord.y, node.second);
+                #endif
+                	screen.write(coord.x, coord.y, node.second);
 		    //toUpdate.erase(coord);
                 }
         }
@@ -71,28 +108,53 @@ void TextRenderManager::renderToScreen() {
 	screen.update();
 }
 
+#ifdef USE_NCURSESW
+std::wstring TextRenderManager::getSnapshot() {
+#else
 std::string TextRenderManager::getSnapshot() {
+#endif
+	#ifdef USE_NCURSESW
+	std::vector<std::wstring> rows;
+	std::wstring brow;
+	#else
 	std::vector<std::string> rows;
 	std::string brow;
+	#endif
 	for (int j=0; j<screen.width; j++) {
 		brow.push_back(' ');
 	}
 	for (int i=0; i<screen.height; i++) {	
 		rows.push_back(brow);
 	}
-	for (const std::string layerName : orderedLayers) {
+	for (const auto layerName : orderedLayers) {
 		for (auto node : layersCache[layerName]) {
-			if (node.second != '\0') {
-				Coordinate coord = node.first;
+			#ifdef USE_NCURSESW
+            if (node.second != L"\0") {
+            	Coordinate coord = node.first;
+				//LOGGER.log(std::to_string(coord.x), DEBUG);
+				//LOGGER.log(std::to_string(coord.y), DEBUG);
+				rows[coord.y][coord.x] = node.second[0];
+            #else
+            if (node.second != '\0') {
+            	Coordinate coord = node.first;
 				//LOGGER.log(std::to_string(coord.x), DEBUG);
 				//LOGGER.log(std::to_string(coord.y), DEBUG);
 				rows[coord.y][coord.x] = node.second;
+            #endif
 			}
 		}
 	}
+	#ifdef USE_NCURSESW
+    std::wstring snapshot;
+    #else
     std::string snapshot;
-    for (std::string row : rows) {
+    #endif
+    for (auto row : rows) {
+    	#ifdef USE_NCURSESW
+    	snapshot += (row + L"\n");
+    	#else
     	snapshot += (row + '\n');
+    	#endif
     }
     return snapshot;
     
