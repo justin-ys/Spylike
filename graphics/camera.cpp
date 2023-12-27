@@ -16,7 +16,6 @@ Coordinate Camera::getOrigin() {return origin;}
 
 #ifdef USE_NCURSESW
 void Camera::draw(Coordinate coord, char c, std::string layerName) {
-	LOGGER.log("huh??", DEBUG);
 	if (!absolute) {
 		Coordinate cameraMapped(coord.x - origin.x, coord.y - origin.y);
 		if ((cameraMapped.x >= 0) && (cameraMapped.y >= 0)) {
