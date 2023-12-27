@@ -13,6 +13,7 @@ ifndef PDCURSES_BACKEND
 		ifeq ($(UNAME_S),Linux)
 			ifndef USE_NCURSES
 				USE_NCURSES=1
+				CPPFLAGS+= -DUSE_NCURSESW
 			endif
 			PDCURSES_BACKEND=x11
 			LDLIBS+= -lpthread -lm -ldl
