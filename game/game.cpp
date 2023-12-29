@@ -112,8 +112,7 @@ void GameManager::StartupTask::update() {
 		Discord_UpdatePresence(&discordPresence);
 		Discord_RunCallbacks();
 		#endif
-		std::vector<std::string> frames = {"hello", "world!"};
-		Animation anim(frames, 20, "UI");
+		Animation anim = load_anim_from_file("game/resource/animation/test.spa", 30, "UI");
 		manager.scheduler.addTask(std::make_unique<AnimationTask>(manager, anim));
 		startedAnimation = true;
 	}
