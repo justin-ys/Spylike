@@ -11,6 +11,19 @@ extern SpylikeLogger LOGGER;
 ScheduledTask::ScheduledTask(std::string id) : id(id), running(true) {}
 
 void FrameScheduler::run() {
+	for (std::string taskID : deletionSlate) {
+		int idx = -1;
+		for (int i = 0; i < tasks.size(); i++) {
+			auto& task = tasks[i];
+			if (task->id == taskID) {
+				idx = i;
+			}
+		}
+		if (idx >= 0) {
+			tasks.erase(tasks.begin() + idx);
+		}
+	}
+	deletionSlate = {};
 	int frameDelay = 1000000/maxFPS;
 	if (!runningSignal) { 
 		runningSignal = true;
@@ -47,6 +60,11 @@ void FrameScheduler::pauseTask(std::string taskID) {
 			task->running = false;
 		}
 	}
+}
+
+void FrameScheduler::destroyTask(std::string taskID) {
+	pauseTask(taskID);
+	deletionSlate.push_back(taskID);
 }
 
 void FrameScheduler::resumeTask(std::string taskID) {

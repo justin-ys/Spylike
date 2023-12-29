@@ -56,7 +56,7 @@ build/%.o: %.cpp
 	mkdir -p $(@D)
 	$(CXX) $(CPPFLAGS) -c -o $@ $(LDLIBS) $^
 
-debug: CPPFLAGS+= -g -O0 -v
+debug: CPPFLAGS+= -g -O0
 debug: build
 
 clean:

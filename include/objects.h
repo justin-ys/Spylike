@@ -10,8 +10,8 @@
 class Object : public EventHandler {
 	protected:
 		std::shared_ptr<EventManager> eventManager;
-		virtual void on_event(Event& e) = 0;
-		virtual void on_update() = 0;
+		virtual void on_event(Event& e) {}
+		virtual void on_update() {}
 		virtual void on_init() {}
 		int ID = -1;
 		void registerEventManager(std::shared_ptr<EventManager> manager);
@@ -35,7 +35,7 @@ class Object : public EventHandler {
 
 class SpritedObject : public Object {
 	public:
-		virtual void draw(TextRenderManager& painter) = 0;
+		virtual void draw(TextRenderManager& painter) {}
 };
 		
 

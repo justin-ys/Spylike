@@ -21,6 +21,7 @@
 #include "obstacle.h"
 #include "game.h"
 #include "geometry.h"
+#include "animation.h"
 
 #ifdef USE_DISCORD
 #include "discord_rpc.h"
@@ -93,9 +94,34 @@ void GameManager::MenuTask::update() {
 	manager.menuInputManager->update();
 }
 
+void GameManager::AnimationTask::update() {
+	anim.draw(*manager.menuManager);
+	manager.menuManager->renderToScreen();
+	if (anim.isFinished()) {
+		manager.scheduler.pauseTask("AnimationTask");
+	}
+}
+
 void GameManager::StartupTask::update() {
-	manager.showMenu(SpylikeMenus::startMenu(), true);
-	manager.scheduler.pauseTask("StartupTask");
+	if (!startedAnimation) {
+		#ifdef USE_DISCORD
+		DiscordRichPresence discordPresence;
+		memset(&discordPresence, 0, sizeof(discordPresence));
+		discordPresence.state = "Main menu";
+		discordPresence.largeImageKey = "rg_logo";
+		Discord_UpdatePresence(&discordPresence);
+		Discord_RunCallbacks();
+		#endif
+		std::vector<std::string> frames = {"hello", "world!"};
+		Animation anim(frames, 20, "UI");
+		manager.scheduler.addTask(std::make_unique<AnimationTask>(manager, anim));
+		startedAnimation = true;
+	}
+	else if (!manager.scheduler.isRunning("AnimationTask")) {
+		manager.scheduler.destroyTask("AnimationTask");
+		manager.showMenu(SpylikeMenus::startMenu(), true);
+		manager.scheduler.pauseTask("StartupTask");
+	}
 }
 
 
@@ -235,5 +261,6 @@ void GameManager::run() {
 	scheduler.addTask(std::make_unique<MenuTask>(*this));
 	scheduler.addTask(std::make_unique<StartupTask>(*this));
 	scheduler.pauseTask("MenuTask");
+	scheduler.pauseTask("RunLevel");
 	scheduler.run();
 }	

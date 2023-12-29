@@ -15,6 +15,7 @@
 #include "logger.h"
 #include "misc.h"
 #include "audio.h"
+#include "animation.h"
 
 #include <string>
 #include <iostream>
@@ -131,8 +132,16 @@ class GameManager : public EventHandler, public std::enable_shared_from_this<Gam
 			MenuTask(GameManager& manager) : ScheduledTask("MenuTask"), manager{manager} {}
 			void update() override;
 	};
+	class AnimationTask : public ScheduledTask {
+		GameManager& manager;
+		Animation anim;
+		public:
+			AnimationTask(GameManager& manager, Animation anim) : ScheduledTask("AnimationTask"), manager{manager}, anim{anim} {}
+			void update() override;
+	};
 	class StartupTask : public ScheduledTask {
 		GameManager& manager;
+		bool startedAnimation=false;
 		public:
 			StartupTask(GameManager& manager) : ScheduledTask("StartupTask"), manager{manager} {}
 			void update() override;
