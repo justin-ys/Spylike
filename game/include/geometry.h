@@ -11,7 +11,7 @@ class Geometry: public TileEntity {
 class Wall : public Geometry {
 	void on_update() override {};
 	void on_event(Event& e) override {};
-	void draw(GeometryRenderer& painter) override;
+	void draw(Camera& painter) override;
 	void on_collide(std::shared_ptr<TileEntity> collider) override {};
 };
 	

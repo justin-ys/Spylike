@@ -3,3 +3,4 @@ test_log.txt
 Spylike-v*
 lib/bin
 lib/include
+build/*

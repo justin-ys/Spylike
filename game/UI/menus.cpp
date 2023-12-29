@@ -16,7 +16,7 @@ void MenuButton::click() {
 	eventManager->emit(ev);
 }
 
-void MenuButton::draw(GeometryRenderer& painter) {
+void MenuButton::draw(TextRenderManager& painter) {
 	std::string drawnText = text;
 	// note that subtracting 2 from width may cause integer overflow(???) so we have to do it this way
 	if (((text.length() + 2) > width) || (height < 3)) {
@@ -43,7 +43,7 @@ void MenuButton::on_event(Event& e) {}
 
 void MenuButton::on_update() {}
 
-void Menu::draw(GeometryRenderer& painter) {
+void Menu::draw(TextRenderManager& painter) {
 	Coordinate selectionPos = buttons.find(currentSelection)->second.pos;
 	Coordinate arrowPos = Coordinate(selectionPos.x + buttons.find(currentSelection)->second.width/2, selectionPos.y - 1);
 	painter.draw(arrowPos, 'v', "UI");
@@ -53,7 +53,7 @@ void Menu::draw(GeometryRenderer& painter) {
 	}
 }
 
-void PauseMenu::draw(GeometryRenderer& painter) {
+void PauseMenu::draw(TextRenderManager& painter) {
 	/*
 	painter.drawString(Coordinate(1, 1), ""
  "|||\n"
@@ -68,12 +68,12 @@ void PauseMenu::draw(GeometryRenderer& painter) {
 	Menu::draw(painter);
 }
 
-void GameOverMenu::draw(GeometryRenderer& painter) {
+void GameOverMenu::draw(TextRenderManager& painter) {
 	painter.drawString(Coordinate(painter.getScreenWidth()/2-8, 1), "GAME OVER!", "UI");
 	Menu::draw(painter);
 }
 
-void StartMenu::draw(GeometryRenderer& painter) {
+void StartMenu::draw(TextRenderManager& painter) {
 	painter.drawString(Coordinate(painter.getScreenWidth()/2-12, 1), "WELCOME TO SPYLIKE!", "UI");	
 	painter.drawString(Coordinate(painter.getScreenWidth()/2-7, 2), "CONTROLS:", "UI");
 	painter.drawString(Coordinate(painter.getScreenWidth()/2-10, 3), "W,A,S,D MOVEMENT", "UI");

@@ -1,8 +1,10 @@
 CXX=g++
 CPPFLAGS=-std=c++2a -Iinclude -Igame/include -Ilib/include -DMA_NO_PULSEAUDIO
-LDLIBS=
-OBJS=graphics/*.cpp logging/*.cpp models/*.cpp level/*.cpp audio/*.cpp game/*.cpp game/entities/*.cpp game/UI/*.cpp util/*.cpp main.cpp
+LDLIBS=-Llib/bin
+SOURCES=$(wildcard graphics/*.cpp logging/*.cpp models/*.cpp level/*.cpp audio/*.cpp game/*.cpp game/entities/*.cpp game/UI/*.cpp util/*.cpp main.cpp)
+OBJS=$(patsubst %.cpp, build/%.o, $(SOURCES))
 VER=vA1
+USE_DISCORD=1
 
 ifndef PDCURSES_BACKEND
 	ifeq ($(OS),Windows_NT)
@@ -12,6 +14,7 @@ ifndef PDCURSES_BACKEND
 		ifeq ($(UNAME_S),Linux)
 			ifndef USE_NCURSES
 				USE_NCURSES=1
+				CPPFLAGS+= -DUSE_NCURSESW
 			endif
 			PDCURSES_BACKEND=x11
 			LDLIBS+= -lpthread -lm -ldl
@@ -22,20 +25,45 @@ endif
 ifeq ($(USE_NCURSES), 1)
 	LDLIBS+= -lncursesw
 else
-	LDLIBS+= -Llib/bin -lpdcurses
+	LDLIBS+= -lpdcurses
 endif
 
 ifndef PDCURSES_BACKEND
 	$(error  "OS not detected or supported - please specify PDCurses backend (wincon, x11, sdl2))
 endif
 
+ifeq ($(USE_DISCORD), 1)
+    $(shell mkdir -p lib/bin)
+    $(shell mkdir -p lib/include)
+    ifeq ($(UNAME_S),Linux)
+        $(shell cp -u lib/discord-rpc-linux/linux-dynamic/include/*.h lib/include)
+        $(shell cp -u lib/discord-rpc-linux/linux-dynamic/lib/libdiscord-rpc.so lib/bin)
+        LDLIBS+= -ldiscord-rpc
+        CPPFLAGS+= -DUSE_DISCORD
+    else
+        USE_DISCORD=0
+    endif
+endif
+
+$(shell mkdir -p lib/include)
+$(shell cp lib/miniaudio/miniaudio.h lib/include/miniaudio.h)
+		
 build: build-pdcurses
 build: $(OBJS)
-	cp lib/miniaudio/miniaudio.h lib/include/miniaudio.h
-	$(CXX) $(CPPFLAGS) -o Spylike-$(VER) $(OBJS) $(LDLIBS)
+	$(CXX) $(CPPFLAGS) -o Spylike-$(VER) $(OBJS) $(LDLIBS) -Wl,-rpath=lib/bin
+	
+build/%.o: %.cpp
+	mkdir -p $(@D)
+	$(CXX) $(CPPFLAGS) -c -o $@ $(LDLIBS) $^
 
-debug: CPPFLAGS+= -g -O0
+debug: CPPFLAGS+= -g -O0 -v
 debug: build
+
+clean:
+	rm -rf lib/bin/*
+	rm -rf lib/include/*
+	rm -rf build/*
+	rm -rf lib/src/*
 
 build-pdcurses:
 	cd lib && mkdir -p bin

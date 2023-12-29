@@ -16,6 +16,9 @@ class TerminalScreen {
         const int height;
 	TerminalScreen(int w, int h) : width{w}, height{h} {}
         virtual void write(int x, int y, char c) = 0;
+		#ifdef USE_NCURSESW
+        virtual void write(int x, int y, std::wstring c) = 0;
+        #endif
         virtual void write(int x, int y, std::string s) = 0;
 	virtual void update() = 0;
         //virtual char* read(int x, int y) = 0; 
@@ -31,8 +34,11 @@ class NcursesTerminalScreen : public TerminalScreen {
     public:
         NcursesTerminalScreen(int w, int h);
         void write(int x, int y, char c);
+        #ifdef USE_NCURSESW
+        void write(int x, int y, std::wstring c);
+        #endif
         void write(int x, int y, std::string s);
-	void update();
+		void update();
         //char* read(int x, int y);
         char getInput();
         //MouseEvent getMouse();

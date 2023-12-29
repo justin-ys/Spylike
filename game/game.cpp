@@ -1,5 +1,12 @@
 #include <iostream>
 #include <cmath>
+#include <vector>
+#include <string>
+#include <memory>
+#include <unistd.h>
+#include <string>
+#include <cstring>
+
 #include "rendering.h"
 #include "scheduling.h"
 #include "camera.h"
@@ -14,11 +21,10 @@
 #include "obstacle.h"
 #include "game.h"
 #include "geometry.h"
-#include <vector>
-#include <string>
-#include <memory>
-#include <unistd.h>
-#include <string>
+
+#ifdef USE_DISCORD
+#include "discord_rpc.h"
+#endif
 
 extern SpylikeLogger LOGGER;
 
@@ -28,37 +34,61 @@ std::string formatSeconds(int seconds) {
 	return std::to_string(minutes) + ":" + std::to_string(seconds);
 }
 
+GameManager::GameManager() {
+	#ifdef USE_DISCORD
+	memset(&handlers, 0, sizeof(handlers));
+    handlers.ready = handleDiscordReady;
+    handlers.disconnected = handleDiscordDisconnected;
+    handlers.errored = handleDiscordError;
+    handlers.joinGame = handleDiscordJoin;
+    handlers.spectateGame = handleDiscordSpectate;
+    handlers.joinRequest = handleDiscordJoinRequest;
+    Discord_Initialize(DISCORD_CLIENT_ID, &handlers, 1, NULL);
+	#endif
+}
+
+
 void GameManager::RunLevelTask::update() {
+	auto& theMap = manager.map;
 	manager.camera->clearScreen();
 	Coordinate origin = manager.camera->getOrigin();
-	int yOff = manager.camera->getYOffset();
-	int xOff = manager.camera->getXOffset();
-	for (int y=(origin.y+yOff); y>(origin.y+yOff-(2*manager.camera->getScreenHeight())); y--) {
-		for (int x=(origin.x-xOff); x<(origin.x-xOff+(2*manager.camera->getScreenWidth())); x++) {
-			if (manager.map->isInMap(Coordinate(x, y))) {
-				manager.map->updateTile(Coordinate(x, y));
-				manager.map->drawTile(Coordinate(x, y), *manager.gameRenderer);
+	for (int y=origin.y; y<(origin.y+manager.camera->getScreenHeight()); y++) {
+		for (int x=origin.x; x<(origin.x+manager.camera->getScreenWidth()); x++) {
+			if (theMap->isInMap(Coordinate(x, y))) {
+				theMap->updateTile(Coordinate(x, y));
+			}
+			if (manager.killUpdates) {
+				manager.killUpdates = false;
+				return;
 			}
 		}
+		
+	}
+	for (int y=origin.y; y<(origin.y+manager.camera->getScreenHeight()); y++) {
+		for (int x=origin.x; x<(origin.x+manager.camera->getScreenWidth()); x++) {
+			if (manager.map->isInMap(Coordinate(x, y))) {
+				manager.map->drawTile(Coordinate(x, y), *manager.camera);
+			}
+		}
+		
 	}
 	//manager.menuRenderer->drawBox(Coordinate(0, 0), Coordinate(manager.menuManager->getScreenWidth(), manager.menuManager->getScreenHeight()), "Overlay");
 	//manager.menuManager->renderToScreen();
 	manager.camera->toggleAbsolute();
-	manager.gameRenderer->drawString(Coordinate(0, 0), "Health: " + std::to_string(manager.playerHealth), "UI");
-	manager.gameRenderer->drawString(Coordinate(0, 1), "Time elapsed: " + formatSeconds(manager.scheduler.timeElapsed()), "UI");
+	manager.camera->drawString(Coordinate(0, 0), "Health: " + std::to_string(manager.playerHealth), "UI");
+	manager.camera->drawString(Coordinate(0, 1), "Time elapsed: " + formatSeconds(manager.scheduler.timeElapsed()), "UI");
 	manager.camera->toggleAbsolute();
 	manager.camera->renderToScreen();
 	manager.inputManager->update();
-
 }
 
 void GameManager::TickTask::update() {}
 
 void GameManager::MenuTask::update() {
 	manager.menuManager->clearScreen();
-	manager.activeMenu->draw(*manager.menuRenderer);
+	manager.activeMenu->draw(*manager.menuManager);
 	manager.activeMenu->update();
-	manager.menuRenderer->drawBox(Coordinate(0, 0), Coordinate(manager.menuManager->getScreenWidth(), manager.menuManager->getScreenHeight()-1), "Overlay");
+	manager.menuManager->drawBox(Coordinate(0, 0), Coordinate(manager.menuManager->getScreenWidth(), manager.menuManager->getScreenHeight()-1), "Overlay");
 	manager.menuManager->renderToScreen();
 	manager.menuInputManager->update();
 }
@@ -79,6 +109,8 @@ void GameManager::quit() {
 }
 
 void GameManager::loadLevel(Level level) {
+	if (map) map->active = false;
+	killUpdates = true;
 	LOGGER.log("Loading level", DEBUG);
 	eventManager->clear();
 	eventManager->subscribe(camera, "CAMERA_MoveUp");
@@ -86,6 +118,9 @@ void GameManager::loadLevel(Level level) {
 	eventManager->subscribe(camera, "CAMERA_MoveLeft");
 	eventManager->subscribe(camera, "CAMERA_MoveRight");
 	eventManager->subscribe(camera, "CAMERA_Move");
+	eventManager->subscribe(camera, "CAMERA_MoveCenter");
+	eventManager->subscribe(camera, "CAMERA_MoveCenterH");
+	eventManager->subscribe(camera, "CAMERA_MoveCenterV");
 	eventManager->subscribe(audioManager, "AUDIO_PlayMusic");
 	eventManager->subscribe(audioManager, "AUDIO_PauseMusic");
 	eventManager->subscribe(shared_from_this(), "MENU_Show");
@@ -105,6 +140,15 @@ void GameManager::loadLevel(Level level) {
 		map->registerEntity(entPair.first, entPair.second);
 	}
 	if (!audioManager->isPlaying()) audioManager->playMusic("1-1.wav", 0.25);
+	#ifdef USE_DISCORD
+    DiscordRichPresence discordPresence;
+    memset(&discordPresence, 0, sizeof(discordPresence));
+    discordPresence.state = level.title.c_str();
+    discordPresence.details = "Playing a level";
+    discordPresence.largeImageKey = "rg_logo";
+    Discord_UpdatePresence(&discordPresence);
+    Discord_RunCallbacks();
+    #endif
 }
 
 // Note: You must close any active menus, before showing a new one.
@@ -173,7 +217,6 @@ void GameManager::on_event(Event& e) {
 void GameManager::run() {
 	std::vector<RenderLayer> layers {RenderLayer("Entity", 1), RenderLayer("Effect", 2), RenderLayer("UI", 3), RenderLayer("Overlay", 4)};
 	camera = std::make_shared<Camera>(screen, 80, 30, layers);
-	camera->setOffset(30, 20);
 	menuManager = std::make_shared<TextRenderManager>(screen, layers);
 
 
@@ -181,11 +224,7 @@ void GameManager::run() {
 	menuEventManager = std::make_shared<EventManager>();
 	inputManager = std::make_shared<InputManager>(eventManager, screen);
 	menuInputManager = std::make_shared<InputManager>(menuEventManager, screen);
-	GeometryRenderer theRenderer = GeometryRenderer(*camera);
-	gameRenderer = &theRenderer;
-	GeometryRenderer theMenuRenderer = GeometryRenderer(*menuManager);
-	menuRenderer = &theMenuRenderer;
-
+	
 	audioManager = std::make_shared<MiniaudioManager>("game/resource/audio/");
 
 	Level level = load_from_file("game/resource/levels/1-3.spm");

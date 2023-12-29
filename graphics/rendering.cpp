@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <algorithm>
 #include <cuchar>
+#include <cwchar>
 
 extern SpylikeLogger LOGGER;
 
@@ -19,12 +20,17 @@ TextRenderManager::TextRenderManager(TerminalScreen& scr, std::vector<RenderLaye
     for (const RenderLayer layer: layers_sorted)
     {
         orderedLayers.insert(orderedLayers.end(), layer.name);
-        TextLayer layercells = {{Coordinate(0,0), '\0'}};
+        #if USE_NCURSESW
+        TextLayer layercells = {{Coordinate(0,0), L"\0"}};
+        #else
+        TextLayer layercells = {{Coordinate(0,0), L'\0'}};
+        #endif
         layersCache.insert({layer.name, layercells}); // Create blank layer in cache so we don't have to worry about initalizing it later
     }
 }
 
-void TextRenderManager::draw(Coordinate coord, char c, std::string layerName) {
+#ifdef USE_NCURSESW
+void TextRenderManager::draw(Coordinate coord, std::wstring c, std::string layerName) {
     if (!locked) {
 	    if (coord.x <= screen.width && coord.y <= screen.height) {
 		    assert(find(orderedLayers.begin(), orderedLayers.end(), layerName) != orderedLayers.end());
@@ -39,9 +45,36 @@ void TextRenderManager::draw(Coordinate coord, char c, std::string layerName) {
     }
 }
 
+void TextRenderManager::draw(Coordinate coord, char c, std::string layerName) {
+    std::wstring converted(1, L'\0');
+    mbstowcs(&converted[0], &c, 1);
+    TextRenderManager::draw(coord, converted, layerName);
+}
+
+#else
+void TextRenderManager::draw(Coordinate coord, char c, std::string layerName) {
+    if (!locked) {
+	    if (coord.x <= screen.width && coord.y <= screen.height) {
+		    assert(find(orderedLayers.begin(), orderedLayers.end(), layerName) != orderedLayers.end());
+		    TextLayer& layer = layersCache[layerName];
+		    //LOGGER.log(std::to_string(coord.x), DEBUG);
+		    if (layer[coord] != c) {
+		    	layer[coord] = c;
+			//toUpdate[coord] = true;
+		    }
+		    //LOGGER.log("\n" + getSnapshot(), DEBUG);
+	    }
+    }
+}
+#endif
+
 void TextRenderManager::clearLayer(std::string layerName) {
 	layersCache.erase(layerName);
+	#if USE_NCURSESW
+	TextLayer layercells = {{Coordinate(0,0), L"\0"}};
+	#else
 	TextLayer layercells = {{Coordinate(0,0), '\0'}};
+	#endif
 	layersCache.insert({layerName, layercells});
 }
 
@@ -60,8 +93,12 @@ void TextRenderManager::renderToScreen() {
     for (const std::string layerName : orderedLayers) {
         for (const auto node : layersCache[layerName]) {
                 Coordinate coord = node.first;
+                #ifdef USE_NCURSESW
+                if (node.second != L"\0") {
+                #else
                 if (node.second != '\0') {
-                    screen.write(coord.x, coord.y, node.second);
+                #endif
+                	screen.write(coord.x, coord.y, node.second);
 		    //toUpdate.erase(coord);
                 }
         }
@@ -71,28 +108,53 @@ void TextRenderManager::renderToScreen() {
 	screen.update();
 }
 
+#ifdef USE_NCURSESW
+std::wstring TextRenderManager::getSnapshot() {
+#else
 std::string TextRenderManager::getSnapshot() {
+#endif
+	#ifdef USE_NCURSESW
+	std::vector<std::wstring> rows;
+	std::wstring brow;
+	#else
 	std::vector<std::string> rows;
 	std::string brow;
+	#endif
 	for (int j=0; j<screen.width; j++) {
 		brow.push_back(' ');
 	}
 	for (int i=0; i<screen.height; i++) {	
 		rows.push_back(brow);
 	}
-	for (const std::string layerName : orderedLayers) {
+	for (const auto layerName : orderedLayers) {
 		for (auto node : layersCache[layerName]) {
-			if (node.second != '\0') {
-				Coordinate coord = node.first;
+			#ifdef USE_NCURSESW
+            if (node.second != L"\0") {
+            	Coordinate coord = node.first;
+				//LOGGER.log(std::to_string(coord.x), DEBUG);
+				//LOGGER.log(std::to_string(coord.y), DEBUG);
+				rows[coord.y][coord.x] = node.second[0];
+            #else
+            if (node.second != '\0') {
+            	Coordinate coord = node.first;
 				//LOGGER.log(std::to_string(coord.x), DEBUG);
 				//LOGGER.log(std::to_string(coord.y), DEBUG);
 				rows[coord.y][coord.x] = node.second;
+            #endif
 			}
 		}
 	}
+	#ifdef USE_NCURSESW
+    std::wstring snapshot;
+    #else
     std::string snapshot;
-    for (std::string row : rows) {
+    #endif
+    for (auto row : rows) {
+    	#ifdef USE_NCURSESW
+    	snapshot += (row + L"\n");
+    	#else
     	snapshot += (row + '\n');
+    	#endif
     }
     return snapshot;
     
@@ -106,27 +168,20 @@ int TextRenderManager::getScreenHeight() {
 	return screen.height;
 }
 
-
-GeometryRenderer::GeometryRenderer(TextRenderManager& renderManager) : manager(renderManager) {}
-
-void GeometryRenderer::draw(Coordinate coord, char c, std::string layerName) {
-	manager.draw(coord, c, layerName);
-}
-
-void GeometryRenderer::drawString(Coordinate pos, std::string str, std::string layerName) {
+void TextRenderManager::drawString(Coordinate pos, std::string str, std::string layerName) {
 	Coordinate currentPos = pos;
 	for (const char& c : str) {
 		if (c == '\n') {
 			currentPos.y += 1;
 			currentPos.x = pos.x;
 		}
-		manager.draw(currentPos, c, layerName);
+		draw(currentPos, c, layerName);
 		currentPos.x += 1;
 	}
 }
 		
 
-void GeometryRenderer::drawLine(Coordinate p1, Coordinate p2, char c, std::string layerName) {
+void TextRenderManager::drawLine(Coordinate p1, Coordinate p2, char c, std::string layerName) {
 	int deltaX = p2.x - p1.x;
 	int deltaY = p2.y - p1.y;
 	int slopeY;
@@ -144,33 +199,25 @@ void GeometryRenderer::drawLine(Coordinate p1, Coordinate p2, char c, std::strin
 	Coordinate currentPos = p1;
 	int yCounter = 0;
 	for (int x=0; abs(x)<abs(deltaX)+1; x+=signX) {
-		manager.draw(currentPos, c, layerName);
+		draw(currentPos, c, layerName);
 		yCounter += slopeY;
 		int lastY = currentPos.y;
 		currentPos.y = p1.y + ((yCounter + 5*signY)/10);
 		int lastDelta = abs(currentPos.y - lastY);
 		if (lastDelta > 1) {
 			for (int y=0; y<=lastDelta; y++) {
-				manager.draw(Coordinate(currentPos.x, currentPos.y-(y*signY)), c, layerName);
+				draw(Coordinate(currentPos.x, currentPos.y-(y*signY)), c, layerName);
 			}
 		}
 		currentPos.x += signX;
 	}
 }
 
-void GeometryRenderer::drawBox(Coordinate p1, Coordinate p2, std::string layerName) {
+void TextRenderManager::drawBox(Coordinate p1, Coordinate p2, std::string layerName) {
 	Coordinate p3 = Coordinate(p1.x, p2.y);
 	Coordinate p4 = Coordinate(p2.x, p1.y);
 	drawLine(p1, p3, '|', layerName);
 	drawLine(p2, p4, '|', layerName);
 	drawLine(p2, p3, '-', layerName);
 	drawLine(p1, p4, '-', layerName);
-}
-
-int GeometryRenderer::getScreenWidth() {
-	return manager.getScreenWidth();
-}
-
-int GeometryRenderer::getScreenHeight() {
-	return manager.getScreenHeight();
 }

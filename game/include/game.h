@@ -20,6 +20,11 @@
 #include <iostream>
 #include <memory>
 
+#ifdef USE_DISCORD
+#include "discord_rpc.h"
+const char* const DISCORD_CLIENT_ID="1189761699511812186";
+#endif
+
 extern SpylikeLogger LOGGER;
 
 inline Level load_from_file(std::string path) {
@@ -84,11 +89,16 @@ inline Level load_from_file(std::string path) {
 		}
 		entities[ent] = Coordinate(entX, entY);
 	}
-	return Level(levelType, width, height, entities);
+	std::string filename = path.substr(path.find_last_of("/\\") + 1);
+	std::string title = filename.substr(0, filename.find(".spm"));
+	return Level(title, levelType, width, height, entities);
 }
 
 class GameManager : public EventHandler, public std::enable_shared_from_this<GameManager> {
 	bool paused;
+	#ifdef USE_DISCORD
+	DiscordEventHandlers handlers;
+	#endif
 	FrameScheduler scheduler = FrameScheduler(20);
 	NcursesTerminalScreen screen = NcursesTerminalScreen(80, 30);
 	std::shared_ptr<EventManager> eventManager;
@@ -97,13 +107,12 @@ class GameManager : public EventHandler, public std::enable_shared_from_this<Gam
 	std::shared_ptr<InputManager> menuInputManager;
 	std::shared_ptr<Camera> camera;
 	std::shared_ptr<TextRenderManager> menuManager;
-	GeometryRenderer* gameRenderer;
-	GeometryRenderer* menuRenderer;
 	std::shared_ptr<Menu> activeMenu;
 	std::shared_ptr<LevelMap> map;
 	std::shared_ptr<AudioManager> audioManager;
 	int playerHealth = 100;
 	bool keyCollected = false;
+	bool killUpdates = false;
 	class RunLevelTask : public ScheduledTask {
 		GameManager& manager;
 		public:
@@ -128,7 +137,27 @@ class GameManager : public EventHandler, public std::enable_shared_from_this<Gam
 			StartupTask(GameManager& manager) : ScheduledTask("StartupTask"), manager{manager} {}
 			void update() override;
 	};
+	
+	#ifdef USE_DISCORD
+	static void handleDiscordReady(const DiscordUser* connectedUser)
+	{
+		std::string uID = std::string(connectedUser->userId);
+		LOGGER.log("Discord RPC connected (User ID: " + uID + ")", DEBUG);
+	}
+
+	static void handleDiscordDisconnected(int errcode, const char* message) {}
+
+	static void handleDiscordError(int errcode, const char* message) {}
+
+	static void handleDiscordJoin(const char* secret) {}
+
+	static void handleDiscordSpectate(const char* secret) {}
+
+	static void handleDiscordJoinRequest(const DiscordUser* request) {}
+	#endif
+	
 	public:
+		GameManager();
 		void loadLevel(Level level);
 		void pause();
 		void quit();	

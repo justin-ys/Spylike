@@ -6,6 +6,11 @@
 #include <stdio.h>
 #include <string>
 
+#ifdef USE_NCURSESW
+#include <locale>
+#include <codecvt>
+#endif
+
 enum LogLevel {DEBUG=0, ERROR=1, CRITICAL=2};
 
 class SpylikeLogger {
@@ -30,6 +35,14 @@ class SpylikeLogger {
 			logfile.close();
 			}
 		}
+		#ifdef USE_NCURSESW
+		// Based on https://stackoverflow.com/questions/4804298/how-to-convert-wstring-into-string
+		void log(std::wstring text, LogLevel level) { 
+			std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> converter;
+			std::string converted = converter.to_bytes(text);
+			log(converted, level);
+		}
+		#endif
     private:
 		std::string filename;
 		LogLevel loglevel;

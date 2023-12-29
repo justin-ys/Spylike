@@ -13,7 +13,7 @@ class LevelTransition : public TileEntity {
 	void on_collide(std::shared_ptr<TileEntity> collider) override;
 	void on_event(Event& e) override {}
 	void on_update() override {}
-	void draw(GeometryRenderer& painter) override {}
+	void draw(Camera& painter) override {}
 	public:
 		LevelTransition(std::string levelPath) : TileEntity(true), levelPath{levelPath} {}
 };
@@ -25,7 +25,7 @@ class Key : public TileEntity {
 	void on_collide(std::shared_ptr<TileEntity> collider) override;
 	void on_event(Event& e) override {}
 	void on_update() override;
-	void draw(GeometryRenderer& painter) override;
+	void draw(Camera& painter) override;
 	public:
 		Key() : TileEntity(true) {}
 
@@ -39,7 +39,7 @@ class Door : public TileEntity {
 	void on_event(Event& e) override;
 	void on_collide(std::shared_ptr<TileEntity> collider) override;
 	void on_update() override;
-	void draw(GeometryRenderer& painter) override;
+	void draw(Camera& painter) override;
 	public:
 		Door() : TileEntity(true) {}
 };

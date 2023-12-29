@@ -5,12 +5,13 @@
 #include <algorithm>
 #include <memory>
 #include <stdlib.h>
+#include <cmath>
 
 extern SpylikeLogger LOGGER;
 
 void Player::on_init() {
 	eventManager->subscribe(shared_from_this(), "INPUT_KeyPress");
-	SpylikeEvents::CameraEvent ce("CAMERA_Move", getPos());
+	SpylikeEvents::CameraEvent ce("CAMERA_MoveCenter", getPos());
 	eventManager->emit(ce);
 }
 
@@ -51,9 +52,7 @@ void Player::on_event(Event& e) {
 									else if (getPos().x > newCharPos.x) newCharPos.x--;
 									else if (getPos().y > newCharPos.y) newCharPos.y--;
 									else newCharPos.y++;
-									if (world->isInMap(newCharPos)) {
-										world->moveEntity(character->getID(), newCharPos);
-									}
+									world->moveEntity(character->getID(), newCharPos);
 								}
 							}
 					}
@@ -83,13 +82,7 @@ void Player::on_event(Event& e) {
 						newPos.x++;
 					}
 				}
-				if (world->isInMap(newPos)) {
-					bool res = world->moveEntity(getID(), newPos);
-					if (res) {
-						SpylikeEvents::CameraEvent ce("CAMERA_Move", newPos);
-						eventManager->emit(ce);
-					}
-				}
+				world->moveEntity(getID(), newPos);
 			}
 		}
 		else {
@@ -106,13 +99,9 @@ void Player::on_event(Event& e) {
 						xVel = 1;
 					}
 				}
-				if (world->isInMap(newPos)) {
-					bool res = world->moveEntity(getID(), newPos);
-					if (res) {
-						SpylikeEvents::CameraEvent ce("CAMERA_Move", newPos);
-						eventManager->emit(ce);
-						slideTimer.reset();
-					}
+				bool res = world->moveEntity(getID(), newPos);
+				if (res) {
+					slideTimer.reset();
 				}
 			}
 			else if (ke.c == 'w' || ke.c == ' ' && (yVel == 0)) {
@@ -128,7 +117,18 @@ void Player::on_event(Event& e) {
 	}
 }
 
-void Player::draw(GeometryRenderer& painter) {
+void Player::draw(Camera& painter) {
+	if (world->worldType == WorldType::Platform) {
+		int yDist = getPos().y - painter.getOrigin().y;
+		nextCamPos = Coordinate(getPos().x - painter.getScreenWidth()/2, painter.getOrigin().y);
+		changePosFlag = true;
+		if (yDist > 3*(painter.getScreenHeight()/4)) {
+			nextCamPos.y = painter.getOrigin().y + painter.getScreenHeight()/4;
+		}
+		else if (yDist < painter.getScreenHeight()/4) {
+			nextCamPos.y = painter.getOrigin().y - painter.getScreenHeight()/4;
+		}
+	}
 	if (state == PState::Hurt) { 
 		painter.drawString(getPos(), hurtSprite.getCurrentFrame(), "Entity");
 		hurtSprite.nextFrame();
@@ -143,18 +143,23 @@ void Player::draw(GeometryRenderer& painter) {
 }
 
 void Player::on_update() {
-	if (world->worldType == WorldType::Platform) {
+	if (world->worldType == WorldType::Roguelike) {
+		SpylikeEvents::CameraEvent ce("CAMERA_MoveCenter", getPos());
+		eventManager->emit(ce);
+	}
+	else if (world->worldType == WorldType::Platform) {
+		if (changePosFlag && world->active) {
+			SpylikeEvents::CameraEvent ce("CAMERA_Move", nextCamPos);
+			eventManager->emit(ce);
+			changePosFlag = false;
+		}
 		moveTimer.tick();
 		slideTimer.tick();
 		if (yVel > 0 && (moveTimer.getElapsed() > 3/yVel)) {
 			Coordinate newPos = Coordinate(getPos().x+xVel, getPos().y-1);
-			if (world->isInMap(newPos)) {
-				bool res = world->moveEntity(getID(), newPos);
-				if (res) {
-					yVel--;
-					SpylikeEvents::CameraEvent ce("CAMERA_MoveUp", newPos);
-					eventManager->emit(ce);
-				}
+			bool res = world->moveEntity(getID(), newPos);
+			if (res) {
+				yVel--;
 			}
 			else yVel = 0;
 			slideTimer.reset();
@@ -163,14 +168,12 @@ void Player::on_update() {
 		else {
 			if (moveTimer.getElapsed() > 2) {
 				Coordinate below = Coordinate(getPos().x, getPos().y+1);
-				if (world->isInMap(below)) {
-					bool res = world->moveEntity(getID(), below);
-					if (res && slideTimer.getElapsed() > 2) {
-						Coordinate newPos = Coordinate(below.x+xVel, below.y);
-						bool res = world->moveEntity(getID(), newPos);
-						if (!res) xVel = 0;
-						slideTimer.reset();
-					}
+				bool res = world->moveEntity(getID(), below);
+				if (res && slideTimer.getElapsed() > 2) {
+					Coordinate newPos = Coordinate(below.x+xVel, below.y);
+					bool res = world->moveEntity(getID(), newPos);
+					if (!res) xVel = 0;
+					slideTimer.reset();
 				}
 				moveTimer.reset();
 			}
@@ -195,6 +198,11 @@ void Player::on_update() {
 			attackTimer.tick();
 			if (attackTimer.getElapsed() > 2) state = PState::Idle;
 		}
+	}
+	
+	if (!changePosFlag && world->active) {
+		SpylikeEvents::CameraEvent ce("CAMERA_MoveCenterH", getPos());
+		eventManager->emit(ce);
 	}
 }
 
@@ -244,7 +252,7 @@ void Goblin::on_update() {
 					else xDir = 1;
 					if (world->worldType == WorldType::Platform) yDir = 0;
 					Coordinate newPos(getPos().x + xDir, getPos().y + yDir);
-					if (world->isInMap(newPos)) world->moveEntity(getID(), newPos);
+					world->moveEntity(getID(), newPos);
 				}
 				else state = GobState::Idle;
 			}
@@ -254,16 +262,14 @@ void Goblin::on_update() {
 	if (world->worldType == WorldType::Platform) {
 		if (moveTimer.getElapsed() > 2) {
 			Coordinate below = Coordinate(getPos().x, getPos().y+1);
-			if (world->isInMap(below)) {
-				bool res = world->moveEntity(getID(), below);
-				falling = res;
-			}
+			bool res = world->moveEntity(getID(), below);
+			falling = res;
 			moveTimer.reset();
 		}
 	}
 }
 			
-void Goblin::draw(GeometryRenderer& painter) {
+void Goblin::draw(Camera& painter) {
 	if (state == GobState::Found) {
 		painter.draw(Coordinate(getPos().x, getPos().y-1), '!', "Effect");
 	}
@@ -285,7 +291,7 @@ void Goblin::hurt(int damage) {
 	if (health <= 0) kill();
 }
 
-void Skeleton::draw(GeometryRenderer& painter) {
+void Skeleton::draw(Camera& painter) {
 	painter.draw(getPos(), '&', "Entity");
 }
 
@@ -304,20 +310,19 @@ void Skeleton::on_update() {
 		if (res.size() > 0) {
 			std::shared_ptr<Player> player = res[0];
 			int xVel = 0;
-			if (player->getPos().x > getPos().x) xVel = 100;
-			else if (player->getPos().x < getPos().x) xVel = -100;
+			if (player->getPos().x > getPos().x) xVel = 45;
+			else if (player->getPos().x < getPos().x) xVel = -45;
 			int yVel = 0;
 			if (player->getPos().y != getPos().y) {
 				int yDir = abs(player->getPos().y - getPos().y)/(player->getPos().y - getPos().y);
 				if (player->getPos().x != getPos().x) yVel = yDir*abs((xVel*(player->getPos().y - getPos().y))/(player->getPos().x - getPos().x));
-				else yVel = yDir;
+				else yVel = yDir*10;
 			}
-			Coordinate arrowPos = Coordinate(getPos().x+(xVel/100), getPos().y+(yVel/100));
-			auto tile = world->getTile(arrowPos);
-			if (!tile || tile->getEntities().size() == 0) {
+			if (xVel != 0 || yVel != 0) {
 				std::shared_ptr<SkeletonArrow> arrow = std::make_shared<SkeletonArrow>(xVel, yVel);
 				arrow->init(eventManager);
-				world->registerEntity(arrow, arrowPos);
+				world->registerEntity(arrow, getPos());
+				arrow->update();
 			}
 		}
 		fireTimer.reset();
@@ -328,29 +333,25 @@ void Skeleton::hurt(int damage) {
 	health -= damage;
 }
 
-void SkeletonArrow::draw(GeometryRenderer& painter) {
+void SkeletonArrow::draw(Camera& painter) {
 	painter.draw(getPos(), '#', "Entity");
 }
 
 void SkeletonArrow::on_update() {
-	moveTimer.tick();
-	if (moveTimer.getElapsed() > 2) {	
-		moveTimer.reset();
-		xFlag += xVel;
-		yFlag += yVel;
-		Coordinate newPos = getPos();
-		if (abs(xFlag) >= 100) {
-			newPos.x = newPos.x + (abs(xVel)/xVel)*(abs(xFlag)/100);
-			xFlag = 0;
-		}
-		if (abs(yFlag) >= 100) {
-			newPos.y = newPos.y + abs(yVel)/yVel*(abs(yFlag)/100);
-			yFlag = 0;
-		}
-		if (newPos != getPos()) {
-			if (world->isInMap(newPos)) world->moveEntity(getID(), newPos);
-			else kill();
-		}
+	xFlag += xVel;
+	yFlag += yVel;
+	Coordinate newPos = getPos();
+	if (abs(xFlag) >= 100) {
+		newPos.x += abs(xVel)/xVel;
+		xFlag = 0;
+	}
+	if (abs(yFlag) >= 100) {
+		newPos.y += abs(yVel)/yVel;
+		yFlag = 0;
+	}
+	if (newPos != getPos()) {
+		bool res = world->moveEntity(getID(), newPos);
+		if (!res) kill();
 	}
 }
 
@@ -371,7 +372,7 @@ void Boss::on_init() {
 	}
 }
 
-void Boss::draw(GeometryRenderer& painter) {
+void Boss::draw(Camera& painter) {
 	painter.draw(getPos(), '/', "Entity");
 	painter.draw(Coordinate(getPos().x+1, getPos().y), '\\', "Entity");
 	painter.draw(Coordinate(getPos().x+1, getPos().y-1), ')', "Entity");
@@ -398,11 +399,11 @@ void Boss::on_update() {
 			Coordinate arrowPos = Coordinate(getPos().x-1, getPos().y);
 			int yVel;
 			if ((fireTimer.getElapsed() % 20) % 3 == 0) yVel = 0;
-			else if ((fireTimer.getElapsed() % 20) % 3 == 1) yVel = -30;
-			else yVel = -20;
+			else if ((fireTimer.getElapsed() % 20) % 3 == 1) yVel = -15;
+			else yVel = -10;
 			auto tile = world->getTile(arrowPos);
 			if (!tile || tile->getEntities().size() == 0) {
-				std::shared_ptr<SkeletonArrow> arrow = std::make_shared<SkeletonArrow>(-300, yVel);
+				std::shared_ptr<SkeletonArrow> arrow = std::make_shared<SkeletonArrow>(-60, yVel);
 				arrow->init(eventManager);
 				world->registerEntity(arrow, arrowPos);
 			}
@@ -413,9 +414,9 @@ void Boss::on_update() {
 	}
 	else if (state == BossState::Attack2) {
 		fireTimer.tick();
-		if ((fireTimer.getElapsed() % 15) == 0) {
+		if ((fireTimer.getElapsed() % 25) == 0) {
 			for (int y=0; y<3; y++) {
-				std::shared_ptr<SkeletonArrow> arrow = std::make_shared<SkeletonArrow>(-300, 0);
+				std::shared_ptr<SkeletonArrow> arrow = std::make_shared<SkeletonArrow>(-75, 0);
 				arrow->init(eventManager);
 				world->registerEntity(arrow, Coordinate(getPos().x, getPos().y-y));
 			}

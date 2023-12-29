@@ -13,7 +13,7 @@ class GeometryTile : public TileEntity {
 	char sprite;
 	public:
 		GeometryTile(char sprite) : sprite(sprite) {}
-		void on_draw(GeometryRenderer& painter);
+		void on_draw(Camera& painter);
 };
 
 #endif
