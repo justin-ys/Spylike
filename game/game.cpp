@@ -120,6 +120,7 @@ void GameManager::StartupTask::update() {
 	else if (!manager.scheduler.isRunning("AnimationTask")) {
 		manager.scheduler.destroyTask("AnimationTask");
 		manager.showMenu(SpylikeMenus::startMenu(), true);
+		manager.scheduler.resetElapsed();
 		manager.scheduler.pauseTask("StartupTask");
 	}
 }
@@ -179,6 +180,7 @@ void GameManager::loadLevel(Level level) {
 
 // Note: You must close any active menus, before showing a new one.
 void GameManager::showMenu(std::shared_ptr<Menu> menu, bool pause) {
+	scheduler.pauseElapsed();
 	audioManager->pauseMusic();
 	if (!scheduler.isRunning("MenuTask")) {
 		activeMenu = menu;
@@ -196,6 +198,7 @@ void GameManager::showMenu(std::shared_ptr<Menu> menu, bool pause) {
 }
 
 void GameManager::closeMenu() {
+	scheduler.unpauseElapsed();
 	menuEventManager->unsubscribe(activeMenu);
 	activeMenu = nullptr;
 	scheduler.resumeTask("RunLevel");

@@ -21,6 +21,7 @@ class FrameScheduler {
 	std::vector<std::string> deletionSlate;
 	bool runningSignal;
 	int usElapsed=0;
+	bool elapsedPaused=false;
 	public:
 		FrameScheduler(int maxFPS=60) : maxFPS{maxFPS} {
 			runningSignal = false;
@@ -38,6 +39,9 @@ class FrameScheduler {
 		void resumeTask(std::string taskID);
 		bool isRunning(std::string taskID);
 		int timeElapsed(); // in seconds
+		void resetElapsed() { usElapsed=0; }
+		void pauseElapsed() { elapsedPaused=true; }
+		void unpauseElapsed() { elapsedPaused=false; }
 };
 		
 #endif

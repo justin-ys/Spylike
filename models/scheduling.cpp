@@ -34,7 +34,7 @@ void FrameScheduler::run() {
 					}
 			}
 			usleep(frameDelay);
-			usElapsed += frameDelay;
+			if (!elapsedPaused) usElapsed += frameDelay;
 		}
 	}
 	else {
