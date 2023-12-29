@@ -1,5 +1,12 @@
 #include <iostream>
 #include <cmath>
+#include <vector>
+#include <string>
+#include <memory>
+#include <unistd.h>
+#include <string>
+#include <cstring>
+
 #include "rendering.h"
 #include "scheduling.h"
 #include "camera.h"
@@ -14,11 +21,10 @@
 #include "obstacle.h"
 #include "game.h"
 #include "geometry.h"
-#include <vector>
-#include <string>
-#include <memory>
-#include <unistd.h>
-#include <string>
+
+#ifdef USE_DISCORD
+#include "discord_rpc.h"
+#endif
 
 extern SpylikeLogger LOGGER;
 
@@ -27,6 +33,20 @@ std::string formatSeconds(int seconds) {
 	seconds = seconds - 60*minutes;
 	return std::to_string(minutes) + ":" + std::to_string(seconds);
 }
+
+GameManager::GameManager() {
+	#ifdef USE_DISCORD
+	memset(&handlers, 0, sizeof(handlers));
+    handlers.ready = handleDiscordReady;
+    handlers.disconnected = handleDiscordDisconnected;
+    handlers.errored = handleDiscordError;
+    handlers.joinGame = handleDiscordJoin;
+    handlers.spectateGame = handleDiscordSpectate;
+    handlers.joinRequest = handleDiscordJoinRequest;
+    Discord_Initialize(DISCORD_CLIENT_ID, &handlers, 1, NULL);
+	#endif
+}
+
 
 void GameManager::RunLevelTask::update() {
 	auto& theMap = manager.map;
@@ -120,6 +140,15 @@ void GameManager::loadLevel(Level level) {
 		map->registerEntity(entPair.first, entPair.second);
 	}
 	if (!audioManager->isPlaying()) audioManager->playMusic("1-1.wav", 0.25);
+	#ifdef USE_DISCORD
+    DiscordRichPresence discordPresence;
+    memset(&discordPresence, 0, sizeof(discordPresence));
+    discordPresence.state = level.title.c_str();
+    discordPresence.details = "Playing a level";
+    discordPresence.largeImageKey = "rg_logo";
+    Discord_UpdatePresence(&discordPresence);
+    Discord_RunCallbacks();
+    #endif
 }
 
 // Note: You must close any active menus, before showing a new one.

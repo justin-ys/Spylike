@@ -107,11 +107,12 @@ class LevelMap : public std::enable_shared_from_this<LevelMap> {
 };
 
 struct Level {
+	std::string title;
 	WorldType worldType;
 	int width;
 	int height;
 	std::map<std::shared_ptr<TileEntity>, Coordinate> entities;
-	Level(WorldType wt, int w, int h, std::map<std::shared_ptr<TileEntity>, Coordinate> entities) : worldType{wt}, width{w}, height{h}, entities{entities} {}
+	Level(std::string title, WorldType wt, int w, int h, std::map<std::shared_ptr<TileEntity>, Coordinate> entities) : title{title}, worldType{wt}, width{w}, height{h}, entities{entities} {}
 };
 
 #endif
