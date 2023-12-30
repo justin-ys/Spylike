@@ -16,7 +16,6 @@ void Animation::draw(TextRenderManager& painter) {
 			finished = true;
 			return;
 		}
-		LOGGER.log(frames[currentFrame], DEBUG);
 		painter.drawString(Coordinate(0, 0), frames[currentFrame], layer);
 	}
 	playTimer.tick();

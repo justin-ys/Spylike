@@ -100,6 +100,7 @@ void GameManager::AnimationTask::update() {
 	if (anim.isFinished()) {
 		manager.scheduler.pauseTask("AnimationTask");
 	}
+	manager.inputManager->update();
 }
 
 void GameManager::StartupTask::update() {
@@ -112,7 +113,7 @@ void GameManager::StartupTask::update() {
 		Discord_UpdatePresence(&discordPresence);
 		Discord_RunCallbacks();
 		#endif
-		Animation anim = load_anim_from_file("game/resource/animation/test.spa", 30, "UI");
+		Animation anim = load_anim_from_file("game/resource/animation/splash.spa", 0, "UI");
 		manager.scheduler.addTask(std::make_unique<AnimationTask>(manager, anim));
 		startedAnimation = true;
 	}
@@ -222,6 +223,10 @@ void GameManager::on_event(Event& e) {
 		loadLevel(level);
 	}
 	if (e.type == "INPUT_KeyPress") {
+	    if (scheduler.isRunning("StartupTask")) {
+	    	scheduler.pauseTask("AnimationTask");
+	    	return;
+	    }
 		SpylikeEvents::KeyInputEvent& ke = dynamic_cast<SpylikeEvents::KeyInputEvent&>(e);
 		if (ke.c == 27) {
 			showMenu(SpylikeMenus::pauseMenu());
@@ -249,6 +254,7 @@ void GameManager::run() {
 
 
 	eventManager = std::make_shared<EventManager>();
+	eventManager->subscribe(shared_from_this(), "INPUT_KeyPress");
 	menuEventManager = std::make_shared<EventManager>();
 	inputManager = std::make_shared<InputManager>(eventManager, screen);
 	menuInputManager = std::make_shared<InputManager>(menuEventManager, screen);
