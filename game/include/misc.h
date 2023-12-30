@@ -11,9 +11,6 @@
 class LevelTransition : public TileEntity {
 	std::string levelPath;
 	void on_collide(std::shared_ptr<TileEntity> collider) override;
-	void on_event(Event& e) override {}
-	void on_update() override {}
-	void draw(Camera& painter) override {}
 	public:
 		LevelTransition(std::string levelPath) : TileEntity(true), levelPath{levelPath} {}
 };
@@ -23,7 +20,6 @@ class Key : public TileEntity {
 	enum KeyState { Idle, Collected };
 	KeyState state = KeyState::Idle;
 	void on_collide(std::shared_ptr<TileEntity> collider) override;
-	void on_event(Event& e) override {}
 	void on_update() override;
 	void draw(Camera& painter) override;
 	public:
@@ -42,6 +38,18 @@ class Door : public TileEntity {
 	void draw(Camera& painter) override;
 	public:
 		Door() : TileEntity(true) {}
+};
+
+class Treasure : public TileEntity {
+	Timer collectedTimer;
+	enum TreasureState { Idle, Collected };
+	TreasureState state = TreasureState::Idle;
+	void on_collide(std::shared_ptr<TileEntity> collider) override;
+	void draw(Camera& painter) override;
+	void on_update() override;
+	const int amount;
+	public:
+		Treasure(int dollars) : TileEntity(true), amount{dollars} {}
 };
 
 #endif

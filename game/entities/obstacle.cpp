@@ -8,9 +8,13 @@ void Lava::draw(Camera& painter) {
 }
 
 void Lava::on_collide(std::shared_ptr<TileEntity> collider) {
-	std::shared_ptr<Player> player = std::dynamic_pointer_cast<Player>(collider);
+	std::shared_ptr<Character> character = std::dynamic_pointer_cast<Character>(collider);
+	std::shared_ptr<Character> player = std::dynamic_pointer_cast<Character>(collider);
 	if (player) {
 		player->hurt(5);
+	}
+	else if (character) {
+		character->hurt(20);
 	}
 }
 
@@ -52,8 +56,12 @@ void Spike::draw(Camera& painter) {
 }
 
 void Spike::on_collide(std::shared_ptr<TileEntity> collider) {
-	std::shared_ptr<Player> player = std::dynamic_pointer_cast<Player>(collider);
+	std::shared_ptr<Character> character = std::dynamic_pointer_cast<Character>(collider);
+	std::shared_ptr<Character> player = std::dynamic_pointer_cast<Character>(collider);
 	if (player) {
 		player->hurt(5);
+	}
+	else if (character) {
+		character->hurt(20);
 	}
 }

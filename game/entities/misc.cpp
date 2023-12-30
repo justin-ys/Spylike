@@ -72,3 +72,33 @@ void Door::draw(Camera& painter) {
 		painter.drawString(Coordinate(getPos().x-10, getPos().y-1), "Get a key first!", "Effect");
 	}
 }
+
+void Treasure::draw(Camera& painter) {
+	switch (state) {
+		case (TreasureState::Idle): {
+			painter.draw(getPos(), '$', "Entity");
+			break;
+		}
+		case (TreasureState::Collected): {
+			painter.drawString(Coordinate(getPos().x, getPos().y-1), "+" + std::to_string(amount), "Effect");
+		}
+	}
+}
+
+void Treasure::on_collide(std::shared_ptr<TileEntity> collider) {
+	std::shared_ptr<Player> player = std::dynamic_pointer_cast<Player>(collider);
+	if (player) {
+		int treasure = std::stoi(world->getGameState("treasure"));
+		treasure += amount;
+		world->setGameState("treasure", std::to_string(treasure));
+		isCollidable = false;
+		state = TreasureState::Collected;
+	}
+}
+
+void Treasure::on_update() {
+	if (state == TreasureState::Collected) {
+		collectedTimer.tick();
+		if (collectedTimer.getElapsed() > 15) kill();
+	}
+}

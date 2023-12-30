@@ -2,7 +2,7 @@
 #define SPYLIKE_TIMER_H
 
 class Timer {
-	int elapsed; // in ticks
+	int elapsed=0; // in ticks
 	bool paused=false;
 	public:
 		void tick();

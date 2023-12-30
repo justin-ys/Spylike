@@ -47,16 +47,20 @@ class Goblin : public Character {
 	void draw(Camera& painter) override;
 	void on_collide(std::shared_ptr<TileEntity> collider) override;
 	public:
+		int health = 60;
 		void hurt(int damage) override;
 };
 
 class Skeleton : public Character {
 	Timer fireTimer;
+	Timer moveTimer;
+	bool falling=false;
 	void on_event(Event& e) override {}
 	void on_update() override;
 	void draw(Camera& painter) override;
 	void on_collide(std::shared_ptr<TileEntity> collider) override;
 	public:
+		int health = 100;
 		void hurt(int damage) override;
 };
 

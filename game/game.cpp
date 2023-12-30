@@ -75,9 +75,12 @@ void GameManager::RunLevelTask::update() {
 	}
 	//manager.menuRenderer->drawBox(Coordinate(0, 0), Coordinate(manager.menuManager->getScreenWidth(), manager.menuManager->getScreenHeight()), "Overlay");
 	//manager.menuManager->renderToScreen();
+	std::string tStr = theMap->getGameState("treasure");
+	manager.treasure = std::stoi(tStr);
 	manager.camera->toggleAbsolute();
 	manager.camera->drawString(Coordinate(0, 0), "Health: " + std::to_string(manager.playerHealth), "UI");
 	manager.camera->drawString(Coordinate(0, 1), "Time elapsed: " + formatSeconds(manager.scheduler.timeElapsed()), "UI");
+	manager.camera->drawString(Coordinate(0, 2), "Treasure: " + tStr, "UI");
 	manager.camera->toggleAbsolute();
 	manager.camera->renderToScreen();
 	manager.inputManager->update();
@@ -166,6 +169,7 @@ void GameManager::loadLevel(Level level) {
 		}
 		map->registerEntity(entPair.first, entPair.second);
 	}
+	map->setGameState("treasure", std::to_string(treasure));
 	if (!audioManager->isPlaying()) audioManager->playMusic("1-1.wav", 0.25);
 	#ifdef USE_DISCORD
     DiscordRichPresence discordPresence;

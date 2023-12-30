@@ -270,4 +270,12 @@ void LevelMap::registerEntity(std::shared_ptr<TileEntity> ent, Coordinate pos) {
 	putEntity(ent, pos);
 	ent->init(manager);
 }
-	
+
+std::string LevelMap::getGameState(std::string key) {
+	if (gameState.count(key) >= 1) {
+		return gameState[key];
+	}
+	else return "";
+}
+
+void LevelMap::setGameState(std::string key, std::string value) { gameState[key] = value; }

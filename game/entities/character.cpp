@@ -2,6 +2,7 @@
 #include "rendering.h"
 #include "logger.h"
 #include "event.h"
+#include "misc.h"
 #include <algorithm>
 #include <memory>
 #include <stdlib.h>
@@ -276,7 +277,11 @@ void Goblin::draw(Camera& painter) {
 	if (falling) {
 		painter.draw(Coordinate(getPos().x, getPos().y-1), '?', "Effect");
 	}
-	painter.draw(getPos(), '$', "Entity");
+	#ifdef USE_NCURSESW
+	painter.draw(getPos(), L"§", "Entity");
+	#else
+	painter.draw(getPos(), ';', "Entity");
+	#endif
 }
 
 void Goblin::on_collide(std::shared_ptr<TileEntity> collider) {
@@ -288,7 +293,12 @@ void Goblin::on_collide(std::shared_ptr<TileEntity> collider) {
 
 void Goblin::hurt(int damage) {
 	health -= damage;
-	if (health <= 0) kill();
+	if (health <= 0) {
+		std::shared_ptr<Treasure> treasure = std::make_shared<Treasure>(5);
+		treasure->init(eventManager);
+		world->registerEntity(treasure, getPos());
+		kill();
+	}
 }
 
 void Skeleton::draw(Camera& painter) {
@@ -327,10 +337,25 @@ void Skeleton::on_update() {
 		}
 		fireTimer.reset();
 	}
+	if (world->worldType == WorldType::Platform) {
+	    moveTimer.tick();
+		if (moveTimer.getElapsed() > 2) {
+			Coordinate below = Coordinate(getPos().x, getPos().y+1);
+			bool res = world->moveEntity(getID(), below);
+			falling = res;
+			moveTimer.reset();
+		}
+	}
 }
 
 void Skeleton::hurt(int damage) {
 	health -= damage;
+	if (health <= 0) {
+		std::shared_ptr<Treasure> treasure = std::make_shared<Treasure>(6);
+		treasure->init(eventManager);
+		world->registerEntity(treasure, getPos());
+		kill();
+	}
 }
 
 void SkeletonArrow::draw(Camera& painter) {

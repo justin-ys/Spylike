@@ -49,7 +49,7 @@ class TileEntity : public Object, public std::enable_shared_from_this<TileEntity
 		bool isAlive();
 		Coordinate getPos();
 		virtual void on_collide(std::shared_ptr<TileEntity> collider) {}
-		virtual void draw(Camera& painter) = 0;
+		virtual void draw(Camera& painter) {}
 		TileEntity(bool collidable) : isCollidable{collidable} {}
 };
 
@@ -74,6 +74,7 @@ class LevelMap : public std::enable_shared_from_this<LevelMap> {
 	std::vector<int> freeIDs;
 	int currentID;
 	int getNextID();
+	std::map<std::string, std::string> gameState;
 	public:
 		bool active = true;
 		const int width;
@@ -104,6 +105,8 @@ class LevelMap : public std::enable_shared_from_this<LevelMap> {
 		bool moveEntity(EntityID entityID, Coordinate pos);
 		bool isInMap(Coordinate coord); //convenience function
 		void registerEntity(std::shared_ptr<TileEntity> ent, Coordinate pos);
+		std::string getGameState(std::string key);
+		void setGameState(std::string key, std::string value);
 };
 
 struct Level {

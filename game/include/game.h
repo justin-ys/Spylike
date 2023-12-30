@@ -112,6 +112,7 @@ class GameManager : public EventHandler, public std::enable_shared_from_this<Gam
 	std::shared_ptr<LevelMap> map;
 	std::shared_ptr<AudioManager> audioManager;
 	int playerHealth = 100;
+	int treasure = 0;
 	bool keyCollected = false;
 	bool killUpdates = false;
 	class RunLevelTask : public ScheduledTask {
