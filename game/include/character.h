@@ -34,6 +34,7 @@ class Player : public Character {
 		int yVel = 0;
 		int xVel = 0;
 		void hurt(int damage) override;
+		void heal(int amount);
 };
 
 class Goblin : public Character {
@@ -53,6 +54,9 @@ class Goblin : public Character {
 };
 
 class Skeleton : public Character {
+	enum SkeletonState {Idle, Hurt};
+	SkeletonState state = SkeletonState::Idle;
+	Timer hurtTimer;
 	Timer fireTimer;
 	Timer moveTimer;
 	bool falling=false;
@@ -73,15 +77,17 @@ class SkeletonArrow : public TileEntity {
 	Coordinate initialPos;
 	int xFlag=0;
 	int yFlag=0;
-	int xVel;
-	int yVel;
 	public:
-		SkeletonArrow(int xVel, int yVel) : TileEntity(true), xVel{xVel}, yVel{yVel} {}
+		int xVel;
+		int yVel;
+		const bool deflectable;
+		SkeletonArrow(int xVel, int yVel, bool deflectable=true) : TileEntity(true), xVel{xVel}, yVel{yVel}, deflectable{deflectable} {}
 };
 
 class Boss : public Character {
 	enum BossState { Alert, Attack1, Attack2, Death};
 	bool isHurt = false;
+	bool updatedHealth = false;
 	BossState state = BossState::Alert;
 	Timer alertTimer;
 	Timer fireTimer;

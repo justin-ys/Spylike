@@ -43,23 +43,31 @@ void Player::on_event(Event& e) {
 				std::shared_ptr<Tile> attackTile = world->getTile(attackPos);
 				if (attackTile) {
 					for (auto& entity : attackTile->getEntities()) {
-							std::shared_ptr<Character> character = std::dynamic_pointer_cast<Character>(entity);
-							if (character) {
-								character->hurt(20);
-								std::shared_ptr<Character> boss = std::dynamic_pointer_cast<Boss>(entity);
-								if (!boss && character->isAlive()) {
-									Coordinate newCharPos = character->getPos();
-									if (getPos().x < newCharPos.x) newCharPos.x++;
-									else if (getPos().x > newCharPos.x) newCharPos.x--;
-									else if (getPos().y > newCharPos.y) newCharPos.y--;
-									else newCharPos.y++;
-									world->moveEntity(character->getID(), newCharPos);
-									if (world->worldType == WorldType::Platform && ke.c == 'b') {
-										yVel = 3;
-										moveTimer.reset();
-									}
+						std::shared_ptr<Character> character = std::dynamic_pointer_cast<Character>(entity);
+						if (character) {
+							character->hurt(20);
+							std::shared_ptr<Character> boss = std::dynamic_pointer_cast<Boss>(entity);
+							if (!boss && character->isAlive()) {
+								Coordinate newCharPos = character->getPos();
+								if (getPos().x < newCharPos.x) newCharPos.x++;
+								else if (getPos().x > newCharPos.x) newCharPos.x--;
+								else if (getPos().y > newCharPos.y) newCharPos.y--;
+								else newCharPos.y++;
+								world->moveEntity(character->getID(), newCharPos);
+								if (world->worldType == WorldType::Platform && ke.c == 'b') {
+									yVel = 3;
+									moveTimer.reset();
 								}
 							}
+						}
+						std::shared_ptr<SkeletonArrow> arrow = std::dynamic_pointer_cast<SkeletonArrow>(entity);
+						if (arrow && arrow->deflectable) {
+							if (((arrow->xVel != 0) && (getPos().x != arrow->getPos().x) && (abs(arrow->xVel)/(arrow->xVel) == abs(getPos().x - arrow->getPos().x)/(getPos().x - arrow->getPos().x)))
+							  || ((arrow->yVel != 0) && (getPos().y != arrow->getPos().y) && (abs(arrow->yVel)/(arrow->yVel) == abs(getPos().y - arrow->getPos().y)/(getPos().y - arrow->getPos().y)))) {
+								arrow->xVel = -1*arrow->xVel;
+								arrow->yVel = -1*arrow->yVel;
+							}
+						}
 					}
 				}
 				state = PState::Attacking;
@@ -225,6 +233,12 @@ void Player::hurt(int damage) {
 	}
 }
 
+void Player::heal(int amount) {
+	health += amount;
+	SpylikeEvents::PlayerHurtEvent ev("GAME_PlayerHurt", health);
+	eventManager->emit(ev);
+}
+
 void Goblin::on_update() {
 	switch(state) {
 		case (GobState::Idle): {
@@ -270,6 +284,7 @@ void Goblin::on_update() {
 		}
 	}
 	if (world->worldType == WorldType::Platform) {
+	    moveTimer.tick();
 		if (moveTimer.getElapsed() > 2) {
 			Coordinate below = Coordinate(getPos().x, getPos().y+1);
 			bool res = world->moveEntity(getID(), below);
@@ -320,7 +335,12 @@ void Goblin::hurt(int damage) {
 }
 
 void Skeleton::draw(Camera& painter) {
-	painter.draw(getPos(), '&', "Entity");
+	if (state == SkeletonState::Hurt && hurtTimer.getElapsed() % 2) {
+		painter.draw(getPos(), '*', "Entity");
+	}
+	else {
+		painter.draw(getPos(), '&', "Entity");
+	}
 }
 
 void Skeleton::on_collide(std::shared_ptr<TileEntity> collider) {
@@ -332,20 +352,31 @@ void Skeleton::on_collide(std::shared_ptr<TileEntity> collider) {
 
 
 void Skeleton::on_update() {
+	// TODO: Arrow speed calculation needs a massive rework
 	fireTimer.tick();
 	if (fireTimer.getElapsed() > 30) {
 		std::vector<std::shared_ptr<Player>> res = world->findEntities<Player>(getPos(), 15);
 		if (res.size() > 0) {
 			std::shared_ptr<Player> player = res[0];
 			int xVel = 0;
-			if (player->getPos().x > getPos().x) xVel = 45;
-			else if (player->getPos().x < getPos().x) xVel = -45;
+			if (player->getPos().x > getPos().x) {
+				if (player->getPos().x - getPos().x < 4) xVel = 25;
+				else xVel = 45;
+			}
+			else if (player->getPos().x < getPos().x) {
+				if (getPos().x - player->getPos().x < 4) xVel = -25;
+				xVel = -45;
+			}
 			int yVel = 0;
 			if (player->getPos().y != getPos().y) {
 				int yDir = abs(player->getPos().y - getPos().y)/(player->getPos().y - getPos().y);
-				if (player->getPos().x != getPos().x) yVel = yDir*abs((xVel*(player->getPos().y - getPos().y))/(player->getPos().x - getPos().x));
-				else yVel = yDir*10;
+				if (abs(player->getPos().x - getPos().x) > 3) yVel = yDir*abs((xVel*(player->getPos().y - getPos().y))/(player->getPos().x - getPos().x));
+				else {
+					yVel = yDir*30;
+					xVel = (abs(xVel)/xVel)*abs((yVel*(player->getPos().x - getPos().x)/(player->getPos().y - getPos().y)));
+				}
 			}
+			if (xVel > 0 && yVel > 50) { xVel /= 2; yVel /= 2; }
 			if (xVel != 0 || yVel != 0) {
 				std::shared_ptr<SkeletonArrow> arrow = std::make_shared<SkeletonArrow>(xVel, yVel);
 				arrow->init(eventManager);
@@ -364,15 +395,23 @@ void Skeleton::on_update() {
 			moveTimer.reset();
 		}
 	}
+	if (state == SkeletonState::Hurt) {
+		hurtTimer.tick();
+		if (hurtTimer.getElapsed() > 6) state = SkeletonState::Idle;
+	}
 }
 
 void Skeleton::hurt(int damage) {
-	health -= damage;
-	if (health <= 0) {
-		std::shared_ptr<Treasure> treasure = std::make_shared<Treasure>(6);
-		treasure->init(eventManager);
-		world->registerEntity(treasure, getPos());
-		kill();
+	if (state != SkeletonState::Hurt) {
+		state = SkeletonState::Hurt;
+		hurtTimer.reset();
+		health -= damage;
+		if (health <= 0) {
+			std::shared_ptr<Treasure> treasure = std::make_shared<Treasure>(6);
+			treasure->init(eventManager);
+			world->registerEntity(treasure, getPos());
+			kill();
+		}
 	}
 }
 
@@ -399,9 +438,9 @@ void SkeletonArrow::on_update() {
 }
 
 void SkeletonArrow::on_collide(std::shared_ptr<TileEntity> collider) {
-	std::shared_ptr<Player> player = std::dynamic_pointer_cast<Player>(collider);
-	if (player) {
-		player->hurt(10);
+	std::shared_ptr<Character> character = std::dynamic_pointer_cast<Character>(collider);
+	if (character) {
+		character->hurt(10);
 	}
 	kill();
 }
@@ -409,10 +448,6 @@ void SkeletonArrow::on_collide(std::shared_ptr<TileEntity> collider) {
 void Boss::on_init() {
 	SpylikeEvents::AudioPlayEvent ap("AUDIO_PlayMusic", "1-f.wav", 0.25);
 	eventManager->emit(ap);
-	std::vector<std::shared_ptr<Player>> res = world->findEntities<Player>(getPos(), 100);
-	if (res.size() > 0) {
-		res[0]->health = 100;
-	}
 	std::vector<Coordinate> positions = {getPos(), Coordinate(getPos().x, getPos().y-2), Coordinate(getPos().x+1, getPos().y-2), Coordinate(getPos().x+2, getPos().y-2), Coordinate(getPos().x+1, getPos().y-1), Coordinate(getPos().x+2, getPos().y)};
 	for (Coordinate& pos : positions) {
 		std::shared_ptr<BossSeg> seg = std::make_shared<BossSeg>(std::dynamic_pointer_cast<Boss>(shared_from_this()));
@@ -477,6 +512,15 @@ void Boss::draw(Camera& painter) {
 }
 
 void Boss::on_update() {
+	if (!updatedHealth) {
+		std::vector<std::shared_ptr<Player>> res = world->findEntities<Player>(getPos(), 100);
+		if (res.size() > 0) {
+			res[0]->health = 100;
+			SpylikeEvents::PlayerHurtEvent ev("GAME_PlayerHurt", 100);
+			eventManager->emit(ev);
+		}
+		updatedHealth = true;
+	}
 	if (isHurt) {
 		hurtTimer.tick();
 		if (hurtTimer.getElapsed() > 15) isHurt = false;
@@ -508,7 +552,7 @@ void Boss::on_update() {
 			if (!tile || tile->getEntities().size() == 0) {
 				int xVel = -60;
 				if (phase2) xVel = -80;
-				std::shared_ptr<SkeletonArrow> arrow = std::make_shared<SkeletonArrow>(xVel, yVel);
+				std::shared_ptr<SkeletonArrow> arrow = std::make_shared<SkeletonArrow>(xVel, yVel, false);
 				arrow->init(eventManager);
 				world->registerEntity(arrow, arrowPos);
 			}
@@ -525,7 +569,7 @@ void Boss::on_update() {
 			for (int y=0; y<3; y++) {
 				int xVel = -75;
 				if (phase2) xVel = -100;
-				std::shared_ptr<SkeletonArrow> arrow = std::make_shared<SkeletonArrow>(xVel, 0);
+				std::shared_ptr<SkeletonArrow> arrow = std::make_shared<SkeletonArrow>(xVel, 0, false);
 				arrow->init(eventManager);
 				world->registerEntity(arrow, Coordinate(getPos().x, getPos().y-y));
 			}

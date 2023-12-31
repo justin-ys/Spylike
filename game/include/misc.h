@@ -48,9 +48,10 @@ class Treasure : public TileEntity {
 	void on_collide(std::shared_ptr<TileEntity> collider) override;
 	void draw(Camera& painter) override;
 	void on_update() override;
-	const int amount;
+	void on_init() override;
+	int amount;
 	public:
-		Treasure(int dollars) : TileEntity(true), amount{dollars} {}
+		Treasure(int dollars=5) : TileEntity(true), amount{dollars} {}
 };
 
 #endif

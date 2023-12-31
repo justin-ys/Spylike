@@ -172,6 +172,7 @@ void GameManager::loadLevel(Level level) {
 	}
 	map->setGameState("treasure", std::to_string(treasure));
 	if (!audioManager->isPlaying()) audioManager->playMusic("1-1.wav", 0.25);
+	if (level.title == "1-11") audioManager->pauseMusic();
 	#ifdef USE_DISCORD
     DiscordRichPresence discordPresence;
     memset(&discordPresence, 0, sizeof(discordPresence));

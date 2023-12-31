@@ -3,7 +3,6 @@
 
 void LevelTransition::on_init() {
 	levelPath = "game/resource/levels/" + dynamicProperties["transition"] + ".spm";
-	LOGGER.log(levelPath, DEBUG);
 }
 
 void LevelTransition::on_collide(std::shared_ptr<TileEntity> collider) {
@@ -88,6 +87,10 @@ void Treasure::draw(Camera& painter) {
 			painter.drawString(Coordinate(getPos().x, getPos().y-1), "+" + std::to_string(amount), "Effect");
 		}
 	}
+}
+
+void Treasure::on_init() {
+	if (dynamicProperties.count("amount") > 0) amount = std::stoi(dynamicProperties["amount"]);
 }
 
 void Treasure::on_collide(std::shared_ptr<TileEntity> collider) {
