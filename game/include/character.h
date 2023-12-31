@@ -37,10 +37,11 @@ class Player : public Character {
 };
 
 class Goblin : public Character {
-	enum GobState {Idle, Found, Pursue};
+	enum GobState {Idle, Found, Pursue, Hurt};
 	GobState state = Idle;
 	Timer seekTimer;
 	Timer moveTimer;
+	Timer hurtTimer;
 	bool falling = false;
 	void on_event(Event& e) override {}
 	void on_update() override;

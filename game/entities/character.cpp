@@ -54,6 +54,10 @@ void Player::on_event(Event& e) {
 									else if (getPos().y > newCharPos.y) newCharPos.y--;
 									else newCharPos.y++;
 									world->moveEntity(character->getID(), newCharPos);
+									if (world->worldType == WorldType::Platform && ke.c == 'b') {
+										yVel = 3;
+										moveTimer.reset();
+									}
 								}
 							}
 					}
@@ -258,6 +262,11 @@ void Goblin::on_update() {
 				else state = GobState::Idle;
 			}
 			seekTimer.tick();
+			break;
+		}
+		case (GobState::Hurt): {
+			hurtTimer.tick();
+			if (hurtTimer.getElapsed() > 6) state = GobState::Pursue;
 		}
 	}
 	if (world->worldType == WorldType::Platform) {
@@ -277,11 +286,16 @@ void Goblin::draw(Camera& painter) {
 	if (falling) {
 		painter.draw(Coordinate(getPos().x, getPos().y-1), '?', "Effect");
 	}
-	#ifdef USE_NCURSESW
-	painter.draw(getPos(), L"§", "Entity");
-	#else
-	painter.draw(getPos(), ';', "Entity");
-	#endif
+	if (state == GobState::Hurt && hurtTimer.getElapsed() % 2) {
+		painter.draw(getPos(), '*', "Entity");
+	}
+	else {
+		#ifdef USE_NCURSESW
+		painter.draw(getPos(), L"§", "Entity");
+		#else
+		painter.draw(getPos(), ';', "Entity");
+		#endif
+	}
 }
 
 void Goblin::on_collide(std::shared_ptr<TileEntity> collider) {
@@ -292,12 +306,16 @@ void Goblin::on_collide(std::shared_ptr<TileEntity> collider) {
 }
 
 void Goblin::hurt(int damage) {
-	health -= damage;
-	if (health <= 0) {
-		std::shared_ptr<Treasure> treasure = std::make_shared<Treasure>(5);
-		treasure->init(eventManager);
-		world->registerEntity(treasure, getPos());
-		kill();
+	if (state != GobState::Hurt) {
+		health -= damage;
+		state = GobState::Hurt;
+		hurtTimer.reset();
+		if (health <= 0) {
+			std::shared_ptr<Treasure> treasure = std::make_shared<Treasure>(5);
+			treasure->init(eventManager);
+			world->registerEntity(treasure, getPos());
+			kill();
+		}
 	}
 }
 
@@ -391,7 +409,7 @@ void SkeletonArrow::on_collide(std::shared_ptr<TileEntity> collider) {
 void Boss::on_init() {
 	SpylikeEvents::AudioPlayEvent ap("AUDIO_PlayMusic", "1-f.wav", 0.25);
 	eventManager->emit(ap);
-	std::vector<std::shared_ptr<Player>> res = world->findEntities<Player>(getPos(), 15);
+	std::vector<std::shared_ptr<Player>> res = world->findEntities<Player>(getPos(), 100);
 	if (res.size() > 0) {
 		res[0]->health = 100;
 	}
