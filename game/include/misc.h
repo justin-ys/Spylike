@@ -45,12 +45,12 @@ class Treasure : public TileEntity {
 	Timer collectedTimer;
 	enum TreasureState { Idle, Collected };
 	TreasureState state = TreasureState::Idle;
-	void on_collide(std::shared_ptr<TileEntity> collider) override;
 	void draw(Camera& painter) override;
 	void on_update() override;
 	void on_init() override;
 	int amount;
 	public:
+		void on_collide(std::shared_ptr<TileEntity> collider) override;
 		Treasure(int dollars=5) : TileEntity(true), amount{dollars} {}
 };
 
@@ -59,6 +59,7 @@ class Typewriter : public TileEntity {
 	std::string text="";
 	int cIdx = -1;
 	int delay = 1; // frames
+	bool started=false;
 	void draw(Camera& painter) override;
 	void on_update() override;
 	void on_init() override;

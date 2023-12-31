@@ -64,7 +64,7 @@ void PauseMenu::draw(TextRenderManager& painter) {
 "|         |      |      |      |        |   |      \n"
 "|        |        |      ||||||     |||||   |||||||\n", "UI");
 */
-	painter.drawString(Coordinate(painter.getScreenWidth()/2-5, 1), "PAUSED!", "UI");
+	painter.drawString(Coordinate(painter.getScreenWidth()/2-3, 3), "PAUSED!", "UI");
 	Menu::draw(painter);
 }
 
@@ -89,10 +89,7 @@ void StartMenu::draw(TextRenderManager& painter) {
 "|  \\/||  \\    / \\  |  \\/|| / \\|| |  _|  \\/|| / \\|| | \\||  \\  \n"
 "|    /|  /_   | |  |    /| \\_/|| |_//|    /| |-||| |_/||  /_ \n"
 "\\_/\\_\\\\____\\  \\_/  \\_/\\_\\\\____/\\____\\\\_/\\_\\\\_/ \\|\\____/\\____\\", "UI");
-	painter.drawString(Coordinate(painter.getScreenWidth()/2-5, 9), "CONTROLS:", "UI");
-	painter.drawString(Coordinate(painter.getScreenWidth()/2-8, 10), "W,A,S,D MOVEMENT", "UI");
-	painter.drawString(Coordinate(painter.getScreenWidth()/2-7, 11), "V,B,N,G ATTACK", "UI");
-	painter.drawString(Coordinate(painter.getScreenWidth()/2-7, 12), "ESC PAUSE", "UI");
+	painter.drawString(Coordinate(painter.getScreenWidth()/2-20, 9), "Resize your terminal so it fits the box.", "UI");
 	Menu::draw(painter);
 }
 
@@ -171,7 +168,12 @@ void EndMenu::menu_init() {
 }
 
 void GameOverMenu::menu_init() {
-	SpylikeEvents::AudioPlayEvent ap("AUDIO_PlayMusic", "gameover.wav", 0.4, false);
+	SpylikeEvents::AudioPlayEvent ap("AUDIO_PlayMusic", "gameover.wav", 0.4);
+	eventManager->emit(ap);
+}
+
+void StartMenu::menu_init() {
+	SpylikeEvents::AudioPlayEvent ap("AUDIO_PlayMusic", "shop.wav", 0.4, false);
 	eventManager->emit(ap);
 }
 
@@ -187,9 +189,9 @@ namespace SpylikeMenus {
 	std::shared_ptr<Menu> pauseMenu() {
 		PauseMenu menu(80, 40);
 		MenuButton button(Coordinate(12, 10), 15, 5, "Resume", "close");
-		MenuButton button2(Coordinate(55, 10), 15, 5, "Quit", "quit");
-		menu.addButton(button);
+		MenuButton button2(Coordinate(55, 10), 15, 5, "Main menu", "mainmenu");
 		menu.addButton(button2);
+		menu.addButton(button);
 		return std::make_shared<PauseMenu>(menu);
 	}
 	std::shared_ptr<Menu> gameOver() {
@@ -204,8 +206,8 @@ namespace SpylikeMenus {
 		StartMenu menu(80, 40);
 		MenuButton button(Coordinate(12, 15), 15, 5, "Start game", "restart");
 		MenuButton button2(Coordinate(55, 15), 15, 5, "Quit", "quit");
-		menu.addButton(button);
 		menu.addButton(button2);
+		menu.addButton(button);
 		return std::make_shared<StartMenu>(menu);
 	}
 	

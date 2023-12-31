@@ -96,7 +96,7 @@ class Boss : public Character {
 	Sprite alertSprite{alertFrames, 1};
 	void on_update() override;
 	void draw(Camera& painter) override;
-	void on_collide(std::shared_ptr<TileEntity> collider) override {}
+	void on_collide(std::shared_ptr<TileEntity> collider) override;
 	void on_init() override;
 	bool phase2 = false;
 	public:
@@ -106,6 +106,7 @@ class Boss : public Character {
 
 class BossSeg : public Character {
 	std::shared_ptr<Boss> boss;
+	void on_collide(std::shared_ptr<TileEntity> collider) override;
 	public:
 		BossSeg(std::shared_ptr<Boss> boss) : boss{boss} {}
 		void hurt(int damage) override { boss->hurt(damage); }

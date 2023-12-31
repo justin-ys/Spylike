@@ -224,7 +224,15 @@ void GameManager::on_event(Event& e) {
 	if (e.type == "MENU_ButtonClick") {
 		SpylikeEvents::MenuButtonEvent& mb = dynamic_cast<SpylikeEvents::MenuButtonEvent&>(e);
 		if (mb.buttonID == "close") closeMenu();
-		if (mb.buttonID == "restart") {closeMenu(); playerHealth=100; keyCollected=false; audioManager->playMusic("1-1.wav", 0.25); loadLevel(load_from_file("game/resource/levels/1-1.spm"));}
+		if (mb.buttonID == "restart") {
+			closeMenu(); 
+			playerHealth=100; 
+			keyCollected=false; 
+			treasure=0; 
+			audioManager->playMusic("1-1.wav", 0.25); 
+			scheduler.resetElapsed();
+			loadLevel(load_from_file("game/resource/levels/1-1.spm"));
+		}
 		if (mb.buttonID == "mainmenu") {audioManager->pauseMusic(); showMenu(SpylikeMenus::startMenu());}
 		if (mb.buttonID == "quit") quit();
 	}

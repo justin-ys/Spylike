@@ -117,8 +117,13 @@ void Typewriter::on_init() {
 }
 
 void Typewriter::on_update() {
-	std::vector<std::shared_ptr<Player>> res = world->findEntities<Player>(getPos(), 20);
-	if (res.size() > 0) {
+	if (!started) {
+		std::vector<std::shared_ptr<Player>> res = world->findEntities<Player>(getPos(), 20);
+		if (res.size() > 0) {
+			started = true;
+		}
+	}
+	if (started) {
 		charTimer.tick();
 		int length = text.length(); // store in int to prevent underflow with size_t
 		if (cIdx < length) {

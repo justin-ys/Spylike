@@ -352,6 +352,7 @@ Wall 21,22
 LevelTrans 0,17 transition:1-4
 LevelTrans 0,17 transition:1-4
 LevelTrans 0,15 transition:1-4
-LevelTrans 104,1 transition:1-6
+LevelTrans 104,0 transition:1-6
 LevelTrans 105,0 transition:1-6
-LevelTrans 106,1 transition:1-6
+LevelTrans 106,0 transition:1-6
+LevelTrans 107,0 transition:1-6
