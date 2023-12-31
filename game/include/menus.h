@@ -51,6 +51,7 @@ class PauseMenu : public Menu {
 };
 
 class GameOverMenu : public Menu {
+	void menu_init() override;
 	public:
 		GameOverMenu(int width, int height): Menu(width, height) {}
 		void draw(TextRenderManager& painter) override;

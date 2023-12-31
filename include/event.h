@@ -60,7 +60,8 @@ namespace SpylikeEvents {
 	struct AudioPlayEvent : Event {
 		std::string sound;
 		float volume;
-		AudioPlayEvent(std::string type, std::string sound, float volume=0.5) : Event(type), sound(sound), volume(volume) {}
+		bool loop;
+		AudioPlayEvent(std::string type, std::string sound, float volume=0.5, bool loop=true) : Event(type), sound(sound), volume(volume), loop(loop) {}
 	};
 }
 

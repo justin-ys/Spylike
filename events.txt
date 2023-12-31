@@ -15,7 +15,7 @@ CAMERA_MoveCenterX: Centers the camera vertically at pos specified in CameraEven
 
 
 Audio:
-AUDIO_PlayMusic: Plays the music with filepath [rootPath]/AudioPlayEvent.sound and volume AudioPlayEvent.volume
+AUDIO_PlayMusic: Plays the music with filepath [rootPath]/AudioPlayEvent.sound and volume AudioPlayEvent.volume. Loops if AudioPlayEvent.sound is true
 AUDIO_PauseMusic: Pauses any currently playing music
 
 Game:

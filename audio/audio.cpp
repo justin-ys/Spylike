@@ -11,7 +11,7 @@ extern SpylikeLogger LOGGER;
 void AudioManager::on_event(Event& e) {
 	if (e.type == "AUDIO_PlayMusic") {
 		SpylikeEvents::AudioPlayEvent& ap = dynamic_cast<SpylikeEvents::AudioPlayEvent&>(e);
-		playMusic(ap.sound, ap.volume);
+		playMusic(ap.sound, ap.volume, ap.loop);
 	}
 	else if (e.type == "AUDIO_PauseMusic") {
 		pauseMusic();
@@ -25,7 +25,7 @@ MiniaudioManager::MiniaudioManager(std::string rootPath) : rootPath{rootPath} {
 	if (result != MA_SUCCESS) throw "Error initalizing audio engine.";
 }
 
-void MiniaudioManager::playMusic(std::string track, float volume) {
+void MiniaudioManager::playMusic(std::string track, float volume, bool loop) {
 	LOGGER.log("Playing music " + track, DEBUG);
 	if (playing) stopMusic();
 	playing = true;
@@ -34,7 +34,9 @@ void MiniaudioManager::playMusic(std::string track, float volume) {
 	const char* path_str = path.c_str();
 	ma_result res = ma_sound_init_from_file(engine, path_str, 0, NULL, NULL, cMusic);
 	ma_sound_set_volume(cMusic, volume);
-	ma_sound_set_looping(cMusic, true);
+	if (loop) {
+		ma_sound_set_looping(cMusic, true);
+	}
 	ma_sound_start(cMusic);
 }
 

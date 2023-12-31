@@ -69,7 +69,17 @@ void PauseMenu::draw(TextRenderManager& painter) {
 }
 
 void GameOverMenu::draw(TextRenderManager& painter) {
-	painter.drawString(Coordinate(painter.getScreenWidth()/2-8, 1), "GAME OVER!", "UI");
+	painter.drawString(Coordinate(painter.getScreenWidth()/2-3, 1), "???", "UI");
+	painter.drawString(Coordinate(painter.getScreenWidth()/2-7, 2), "   ____  \n"
+"  / __ \\ \n"
+" / / _` |\n"
+"| | (_| |\n"
+" \\ \\__,_|\n"
+"  \\____/ \n", "UI");
+	painter.drawString(Coordinate(painter.getScreenWidth()/2-16, 9), "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~", "UI");
+	painter.drawString(Coordinate(painter.getScreenWidth()/2-6, 10), "GAME OVER!", "UI");
+	painter.drawString(Coordinate(painter.getScreenWidth()/2-10, 11), "(... Try again??)", "UI");
+	painter.drawString(Coordinate(painter.getScreenWidth()/2-16, 12), "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~", "UI");
 	Menu::draw(painter);
 }
 
@@ -94,7 +104,7 @@ void EndMenu::draw(TextRenderManager& painter) {
 "\\_/\\_\\\\____\\  \\_/  \\_/\\_\\\\____/\\____\\\\_/\\_\\\\_/ \\|\\____/\\____\\", "UI");
 	painter.drawString(Coordinate(painter.getScreenWidth()/2-8, 9), "END OF DEMO", "UI");	
 	painter.drawString(Coordinate(painter.getScreenWidth()/2-12, 10), "(Thanks for playing!)", "UI");
-	painter.drawString(Coordinate(painter.getScreenWidth()/2-28, 11), "(Watch out for the *full version* with 4 more levels!)", "UI");
+	painter.drawString(Coordinate(painter.getScreenWidth()/2-30, 11), "(Watch out for the *full version* with many more levels!)", "UI");
 	Menu::draw(painter);
 }
 
@@ -160,6 +170,11 @@ void EndMenu::menu_init() {
 	eventManager->emit(ap);
 }
 
+void GameOverMenu::menu_init() {
+	SpylikeEvents::AudioPlayEvent ap("AUDIO_PlayMusic", "gameover.wav", 0.4, false);
+	eventManager->emit(ap);
+}
+
 namespace SpylikeMenus {
 	std::shared_ptr<Menu> testMenu() {
 		Menu menu(80, 40);
@@ -179,8 +194,8 @@ namespace SpylikeMenus {
 	}
 	std::shared_ptr<Menu> gameOver() {
 		GameOverMenu menu(80, 40);
-		MenuButton button(Coordinate(12, 10), 15, 5, "Start over", "restart");
-		MenuButton button2(Coordinate(55, 10), 15, 5, "Quit", "quit");
+		MenuButton button(Coordinate(12, 15), 15, 5, "Start over", "restart");
+		MenuButton button2(Coordinate(55, 15), 15, 5, "Quit", "quit");
 		menu.addButton(button);
 		menu.addButton(button2);
 		return std::make_shared<GameOverMenu>(menu);
