@@ -5,6 +5,7 @@
 #include "rendering.h"
 #include "camera.h"
 #include "logger.h"
+#include <string>
 #include <map>
 #include <vector>
 #include <memory>
@@ -33,6 +34,7 @@ class TileEntity : public Object, public std::enable_shared_from_this<TileEntity
 	bool alive = true;
 	protected:
 		std::shared_ptr<LevelMap> world;
+		std::map<std::string, std::string> dynamicProperties;
 	public:
 		bool isCollidable;
 		const Tile* tile = nullptr;
@@ -50,7 +52,9 @@ class TileEntity : public Object, public std::enable_shared_from_this<TileEntity
 		Coordinate getPos();
 		virtual void on_collide(std::shared_ptr<TileEntity> collider) {}
 		virtual void draw(Camera& painter) {}
-		TileEntity(bool collidable) : isCollidable{collidable} {}
+		void setDynamicProperties(std::map<std::string, std::string> props) { dynamicProperties = props; }
+		void setDynamicProp(std::string prop, std::string val) { dynamicProperties[prop] = val; }
+		TileEntity(bool collidable, std::map<std::string, std::string> dynamicProps={}) : isCollidable{collidable}, dynamicProperties{dynamicProperties} {}
 };
 
 class Tile {

@@ -1,6 +1,11 @@
 #include "misc.h"
 #include "event.h"
 
+void LevelTransition::on_init() {
+	levelPath = "game/resource/levels/" + dynamicProperties["transition"] + ".spm";
+	LOGGER.log(levelPath, DEBUG);
+}
+
 void LevelTransition::on_collide(std::shared_ptr<TileEntity> collider) {
 	std::shared_ptr<Player> player = std::dynamic_pointer_cast<Player>(collider);
 	if (player) {

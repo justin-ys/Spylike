@@ -11,8 +11,9 @@
 class LevelTransition : public TileEntity {
 	std::string levelPath;
 	void on_collide(std::shared_ptr<TileEntity> collider) override;
+	void on_init() override;
 	public:
-		LevelTransition(std::string levelPath) : TileEntity(true), levelPath{levelPath} {}
+		LevelTransition() : TileEntity(true) {}
 };
 
 class Key : public TileEntity {

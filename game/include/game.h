@@ -20,6 +20,7 @@
 #include <string>
 #include <iostream>
 #include <memory>
+#include <fstream>
 
 #ifdef USE_DISCORD
 #include "discord_rpc.h"
@@ -62,6 +63,7 @@ inline Level load_from_file(std::string path) {
 		else if (name == "Key") ent = std::make_shared<Key>();
 		else if (name == "Door") ent = std::make_shared<Door>();
 		else if (name == "Boss") ent = std::make_shared<Boss>();
+		else if (name == "LevelTrans") ent = std::make_shared<LevelTransition>();
 		else ent = std::make_shared<Wall>();
 		idx++;
 		std::string entXStr;
@@ -77,6 +79,40 @@ inline Level load_from_file(std::string path) {
 			idx++;
 		}
 		int entY = std::stoi(entYStr);
+		std::map<std::string, std::string> dynamicProps;
+		while (idx < entLine.length() - 2) {
+			idx++;
+			std::string propName;
+			while (entLine[idx] != ':') {
+				propName += entLine[idx];
+				idx++;
+			}
+			idx++;
+			std::string propVal;
+			if (entLine[idx] == '"') {
+				idx++;
+				while (idx < entLine.length() && entLine[idx] != '"') {
+					if ((entLine[idx] == '\\') && (entLine[idx+1] == '"')) {
+						propVal += '"';
+						idx += 2;
+					}
+					else {
+						propVal += entLine[idx];
+						idx++;
+					}
+				}
+			}
+			else {
+				while (idx < entLine.length() && entLine[idx] != ' ') {
+					propVal += entLine[idx];
+					idx++;
+				}
+			}
+			if (idx < entLine.length() && entLine[idx] == '"') idx++;
+			dynamicProps[propName] = propVal;
+		}
+		ent->setDynamicProperties(dynamicProps);
+		/*
 		if (name == "LevelTrans") {
 			while (entLine[idx] != ':') idx++;
 			idx++;
@@ -88,6 +124,7 @@ inline Level load_from_file(std::string path) {
 			levelPath = "game/resource/levels/" + levelPath + ".spm";
 			ent = std::make_shared<LevelTransition>(levelPath);
 		}
+		*/
 		entities[ent] = Coordinate(entX, entY);
 	}
 	std::string filename = path.substr(path.find_last_of("/\\") + 1);
