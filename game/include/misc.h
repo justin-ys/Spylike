@@ -54,4 +54,16 @@ class Treasure : public TileEntity {
 		Treasure(int dollars=5) : TileEntity(true), amount{dollars} {}
 };
 
+class Typewriter : public TileEntity {
+	Timer charTimer;
+	std::string text="";
+	int cIdx = -1;
+	int delay = 1; // frames
+	void draw(Camera& painter) override;
+	void on_update() override;
+	void on_init() override;
+	public:
+		Typewriter() : TileEntity(false) {}
+};
+
 #endif

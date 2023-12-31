@@ -65,6 +65,7 @@ inline Level load_from_file(std::string path) {
 		else if (name == "Boss") ent = std::make_shared<Boss>();
 		else if (name == "LevelTrans") ent = std::make_shared<LevelTransition>();
 		else if (name == "Treasure") ent = std::make_shared<Treasure>();
+		else if (name == "Typewriter") ent = std::make_shared<Typewriter>();
 		else ent = std::make_shared<Wall>();
 		idx++;
 		std::string entXStr;

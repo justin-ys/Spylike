@@ -7,7 +7,7 @@
 extern SpylikeLogger LOGGER;
 
 void Animation::draw(TextRenderManager& painter) {
-	int size = frames.size(); // i have to store this in a variable first because otherwise... the comparison doesn't work. like, it will think 2 >= -1. beats me.
+	int size = frames.size(); // store in int to prevent underflow with size_t
 	if (currentFrame >= size) return;
 	if (currentFrame == -1 || playTimer.getElapsed() >= delay) {
 		playTimer.reset();

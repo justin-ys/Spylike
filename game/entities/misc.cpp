@@ -110,3 +110,31 @@ void Treasure::on_update() {
 		if (collectedTimer.getElapsed() > 15) kill();
 	}
 }
+
+void Typewriter::on_init() {
+	if (dynamicProperties.count("text") > 0) text = dynamicProperties["text"];
+	if (dynamicProperties.count("delay") > 0) text = dynamicProperties["delay"];
+}
+
+void Typewriter::on_update() {
+	std::vector<std::shared_ptr<Player>> res = world->findEntities<Player>(getPos(), 20);
+	if (res.size() > 0) {
+		charTimer.tick();
+		int length = text.length(); // store in int to prevent underflow with size_t
+		if (cIdx < length) {
+			if (charTimer.getElapsed() >= delay) {
+				charTimer.reset();
+				cIdx++;
+			}
+		}
+		else if (charTimer.getElapsed() >= 15) {
+			kill();
+		}
+	}	
+}
+
+void Typewriter::draw(Camera& painter) {
+	if (cIdx >= 0) {
+		painter.drawString(getPos(), text.substr(0, cIdx), "UI");
+	}
+}

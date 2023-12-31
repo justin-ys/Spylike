@@ -388,3 +388,6 @@ LevelTrans 66,1 transition:1-2
 LevelTrans 67,0 transition:1-2
 LevelTrans 68,1 transition:1-2
 LevelTrans 69,1 transition:1-2
+Typewriter 7,41 text:"w,a,s,d to move"
+Typewriter 6,20 text:"v,b,n,g to attack"
+Typewriter 45,44 text:"hold to dash"

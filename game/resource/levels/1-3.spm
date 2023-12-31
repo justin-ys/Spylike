@@ -437,3 +437,4 @@ Spike 19,29
 Spike 20,29
 LevelTrans 96,8 transition:1-4
 LevelTrans 96,9 transition:1-4
+Typewriter 2,25 text:"w to jump - move, then jump for a boost"
