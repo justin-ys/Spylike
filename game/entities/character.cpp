@@ -395,25 +395,85 @@ void Boss::on_init() {
 	if (res.size() > 0) {
 		res[0]->health = 100;
 	}
+	std::vector<Coordinate> positions = {getPos(), Coordinate(getPos().x, getPos().y-2), Coordinate(getPos().x+1, getPos().y-2), Coordinate(getPos().x+2, getPos().y-2), Coordinate(getPos().x+1, getPos().y-1), Coordinate(getPos().x+2, getPos().y)};
+	for (Coordinate& pos : positions) {
+		std::shared_ptr<BossSeg> seg = std::make_shared<BossSeg>(std::dynamic_pointer_cast<Boss>(shared_from_this()));
+		seg->init(eventManager);
+		world->registerEntity(seg, pos);
+	}
 }
 
 void Boss::draw(Camera& painter) {
-	painter.draw(getPos(), '/', "Entity");
-	painter.draw(Coordinate(getPos().x+1, getPos().y), '\\', "Entity");
-	painter.draw(Coordinate(getPos().x+1, getPos().y-1), ')', "Entity");
-	painter.draw(Coordinate(getPos().x, getPos().y-1), '(', "Entity");
+	if (isHurt && hurtTimer.getElapsed() % 2) {
+		painter.draw(Coordinate(getPos().x, getPos().y-2), '*', "Entity");
+		painter.draw(Coordinate(getPos().x+1, getPos().y-2), '*', "Entity");
+		painter.draw(Coordinate(getPos().x+2, getPos().y-2), '*', "Entity");
+		painter.draw(Coordinate(getPos().x+1, getPos().y-1), '*', "Entity");
+		painter.draw(getPos(), '*', "Entity");
+		painter.draw(Coordinate(getPos().x+2, getPos().y), '*', "Entity");
+	}
+	else if (state != BossState::Death) {
+		painter.draw(Coordinate(getPos().x, getPos().y-2), '(', "Entity");
+		painter.draw(Coordinate(getPos().x+1, getPos().y-2), '&', "Entity");
+		painter.draw(Coordinate(getPos().x+2, getPos().y-2), ')', "Entity");
+		painter.draw(Coordinate(getPos().x+1, getPos().y-1), '|', "Entity");
+		painter.draw(getPos(), '/', "Entity");
+		painter.draw(Coordinate(getPos().x+2, getPos().y), '\\', "Entity");
+	}
+	else {
+		if (hurtTimer.getElapsed() < 20) {
+			painter.draw(Coordinate(getPos().x, getPos().y-2), '(', "Entity");
+			painter.draw(Coordinate(getPos().x+1, getPos().y-2), '&', "Entity");
+			painter.draw(Coordinate(getPos().x+2, getPos().y-2), ')', "Entity");
+			painter.draw(Coordinate(getPos().x+1, getPos().y-1), '|', "Entity");
+			painter.draw(getPos(), '\\', "Entity");
+			painter.draw(Coordinate(getPos().x+2, getPos().y), '\\', "Entity");
+		}
+		else {
+			painter.draw(getPos(), '/', "Entity");
+			painter.draw(Coordinate(getPos().x-1, getPos().y), '\\', "Entity");
+			painter.draw(Coordinate(getPos().x-2, getPos().y), '-', "Entity");
+			painter.draw(Coordinate(getPos().x-3, getPos().y), ')', "Entity");
+			painter.draw(Coordinate(getPos().x-4, getPos().y), '#', "Entity");
+			painter.draw(Coordinate(getPos().x-5, getPos().y), '(', "Entity");
+		}
+	}
 	if (state == BossState::Alert) {
-		painter.drawString(Coordinate(getPos().x, getPos().y-2), alertSprite.getCurrentFrame(), "Entity");
+		painter.drawString(Coordinate(getPos().x+1, getPos().y-3), alertSprite.getCurrentFrame(), "Entity");
 		alertSprite.nextFrame();
+	}
+	if (state == BossState::Attack1) {
+		if ((fireTimer.getElapsed() % 20) < 3) {
+			painter.draw(Coordinate(getPos().x, getPos().y-1), '\\', "Entity");
+		}
+		else if ((fireTimer.getElapsed() % 20) < 6) {
+			painter.draw(Coordinate(getPos().x, getPos().y-1), '/', "Entity");
+		}
+		
+	}
+	if (state == BossState::Attack2) {
+		if ((fireTimer.getElapsed() % 25 < 6) && (fireTimer.getElapsed() > 25)) {
+			painter.draw(Coordinate(getPos().x, getPos().y-1), '\\', "Entity");
+		}
 	}
 }
 
 void Boss::on_update() {
+	if (isHurt) {
+		hurtTimer.tick();
+		if (hurtTimer.getElapsed() > 15) isHurt = false;
+	}
 	if (state == BossState::Alert) {
 		alertTimer.tick();
 		if (alertTimer.getElapsed() > 60) {
 			if (rand() % 2) state = BossState::Attack1;
 			else state = BossState::Attack2;
+			std::vector<std::shared_ptr<Player>> res = world->findEntities<Player>(getPos(), 3);
+			if (res.size() > 0) {
+				auto& player = res[0];
+				player->xVel = -3;
+				player->yVel = 4;
+			}
 			fireTimer.reset();
 			alertTimer.reset();
 		}
@@ -428,7 +488,9 @@ void Boss::on_update() {
 			else yVel = -10;
 			auto tile = world->getTile(arrowPos);
 			if (!tile || tile->getEntities().size() == 0) {
-				std::shared_ptr<SkeletonArrow> arrow = std::make_shared<SkeletonArrow>(-60, yVel);
+				int xVel = -60;
+				if (phase2) xVel = -80;
+				std::shared_ptr<SkeletonArrow> arrow = std::make_shared<SkeletonArrow>(xVel, yVel);
 				arrow->init(eventManager);
 				world->registerEntity(arrow, arrowPos);
 			}
@@ -439,24 +501,49 @@ void Boss::on_update() {
 	}
 	else if (state == BossState::Attack2) {
 		fireTimer.tick();
-		if ((fireTimer.getElapsed() % 25) == 0) {
+		int freq = 25;
+		if (phase2) freq = 15;
+		if ((fireTimer.getElapsed() % freq) == 0) {
 			for (int y=0; y<3; y++) {
-				std::shared_ptr<SkeletonArrow> arrow = std::make_shared<SkeletonArrow>(-75, 0);
+				int xVel = -75;
+				if (phase2) xVel = -100;
+				std::shared_ptr<SkeletonArrow> arrow = std::make_shared<SkeletonArrow>(xVel, 0);
 				arrow->init(eventManager);
 				world->registerEntity(arrow, Coordinate(getPos().x, getPos().y-y));
 			}
 		}
-		if (fireTimer.getElapsed() > 100) {
+		if ((fireTimer.getElapsed() > 100 && !phase2) || (fireTimer.getElapsed() > 150 && phase2)) {
 			state = BossState::Alert;
 		}
 	}
-	if (health <= 0) {
-		Event ev("AUDIO_PauseMusic");
-		eventManager->emit(ev);
-		kill();
-	}	
+	else if (state == BossState::Death) {
+		hurtTimer.tick();
+		if (hurtTimer.getElapsed() > 50) {
+			SpylikeEvents::MenuEvent me("MENU_Show", "endgame");
+			eventManager->emit(me);
+		}
+	}
+	
 }
 
 void Boss::hurt(int damage) {
-	health -= damage;
+	if (!isHurt) {
+		hurtTimer.reset();
+		health -= damage;
+		if (health < 120) {
+			phase2 = true;
+		}
+		if (health <= 0) {
+			isCollidable = false;
+			Event ev("AUDIO_PauseMusic");
+			eventManager->emit(ev);
+			hurtTimer.reset();
+			state = BossState::Death;
+		}
+		else isHurt = true;
+	}
+}
+
+void BossSeg::on_update() {
+	if (boss->health <= 0) isCollidable = false;
 }

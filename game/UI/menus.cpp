@@ -74,13 +74,30 @@ void GameOverMenu::draw(TextRenderManager& painter) {
 }
 
 void StartMenu::draw(TextRenderManager& painter) {
-	painter.drawString(Coordinate(painter.getScreenWidth()/2-12, 1), "WELCOME TO SPYLIKE!", "UI");	
-	painter.drawString(Coordinate(painter.getScreenWidth()/2-7, 2), "CONTROLS:", "UI");
-	painter.drawString(Coordinate(painter.getScreenWidth()/2-10, 3), "W,A,S,D MOVEMENT", "UI");
-	painter.drawString(Coordinate(painter.getScreenWidth()/2-9, 4), "V,B,N,G ATTACK", "UI");
-	painter.drawString(Coordinate(painter.getScreenWidth()/2-9, 5), "ESC PAUSE", "UI");
+	painter.drawString(Coordinate(painter.getScreenWidth()/2-30, 1), " ____  _____ _____  ____  ____  _____ ____  ____  ____  _____\n"
+	"/  __\\/  __//__ __\\/  __\\/  _ \\/  __//  __\\/  _ \\/  _ \\/  __/\n"
+"|  \\/||  \\    / \\  |  \\/|| / \\|| |  _|  \\/|| / \\|| | \\||  \\  \n"
+"|    /|  /_   | |  |    /| \\_/|| |_//|    /| |-||| |_/||  /_ \n"
+"\\_/\\_\\\\____\\  \\_/  \\_/\\_\\\\____/\\____\\\\_/\\_\\\\_/ \\|\\____/\\____\\", "UI");
+	painter.drawString(Coordinate(painter.getScreenWidth()/2-5, 9), "CONTROLS:", "UI");
+	painter.drawString(Coordinate(painter.getScreenWidth()/2-8, 10), "W,A,S,D MOVEMENT", "UI");
+	painter.drawString(Coordinate(painter.getScreenWidth()/2-7, 11), "V,B,N,G ATTACK", "UI");
+	painter.drawString(Coordinate(painter.getScreenWidth()/2-7, 12), "ESC PAUSE", "UI");
 	Menu::draw(painter);
 }
+
+void EndMenu::draw(TextRenderManager& painter) {
+	painter.drawString(Coordinate(painter.getScreenWidth()/2-30, 1), " ____  _____ _____  ____  ____  _____ ____  ____  ____  _____\n"
+	"/  __\\/  __//__ __\\/  __\\/  _ \\/  __//  __\\/  _ \\/  _ \\/  __/\n"
+"|  \\/||  \\    / \\  |  \\/|| / \\|| |  _|  \\/|| / \\|| | \\||  \\  \n"
+"|    /|  /_   | |  |    /| \\_/|| |_//|    /| |-||| |_/||  /_ \n"
+"\\_/\\_\\\\____\\  \\_/  \\_/\\_\\\\____/\\____\\\\_/\\_\\\\_/ \\|\\____/\\____\\", "UI");
+	painter.drawString(Coordinate(painter.getScreenWidth()/2-8, 9), "END OF DEMO", "UI");	
+	painter.drawString(Coordinate(painter.getScreenWidth()/2-12, 10), "(Thanks for playing!)", "UI");
+	painter.drawString(Coordinate(painter.getScreenWidth()/2-28, 11), "(Watch out for the *full version* with 4 more levels!)", "UI");
+	Menu::draw(painter);
+}
+
 
 
 // pos is *relative* to menu
@@ -135,6 +152,12 @@ void Menu::on_init() {
 		nextID++;	
 		buttonPair.second.init(eventManager);
 	}
+	menu_init();
+}
+
+void EndMenu::menu_init() {
+	SpylikeEvents::AudioPlayEvent ap("AUDIO_PlayMusic", "shop.wav", 0.4);
+	eventManager->emit(ap);
 }
 
 namespace SpylikeMenus {
@@ -149,7 +172,7 @@ namespace SpylikeMenus {
 	std::shared_ptr<Menu> pauseMenu() {
 		PauseMenu menu(80, 40);
 		MenuButton button(Coordinate(12, 10), 15, 5, "Resume", "close");
-		MenuButton button2(Coordinate(45, 10), 15, 5, "Quit", "quit");
+		MenuButton button2(Coordinate(55, 10), 15, 5, "Quit", "quit");
 		menu.addButton(button);
 		menu.addButton(button2);
 		return std::make_shared<PauseMenu>(menu);
@@ -157,18 +180,27 @@ namespace SpylikeMenus {
 	std::shared_ptr<Menu> gameOver() {
 		GameOverMenu menu(80, 40);
 		MenuButton button(Coordinate(12, 10), 15, 5, "Start over", "restart");
-		MenuButton button2(Coordinate(45, 10), 15, 5, "Quit", "quit");
+		MenuButton button2(Coordinate(55, 10), 15, 5, "Quit", "quit");
 		menu.addButton(button);
 		menu.addButton(button2);
 		return std::make_shared<GameOverMenu>(menu);
 	}
 	std::shared_ptr<Menu> startMenu() {
 		StartMenu menu(80, 40);
-		MenuButton button(Coordinate(12, 10), 15, 5, "Start game", "restart");
-		MenuButton button2(Coordinate(45, 10), 15, 5, "Quit", "quit");
+		MenuButton button(Coordinate(12, 15), 15, 5, "Start game", "restart");
+		MenuButton button2(Coordinate(55, 15), 15, 5, "Quit", "quit");
 		menu.addButton(button);
 		menu.addButton(button2);
 		return std::make_shared<StartMenu>(menu);
+	}
+	
+	std::shared_ptr<Menu> endGame() {
+		EndMenu menu(80, 40);
+		MenuButton button(Coordinate(12, 15), 15, 5, "Main Menu", "mainmenu");
+		MenuButton button2(Coordinate(55, 15), 15, 5, "Quit", "quit");
+		menu.addButton(button);
+		menu.addButton(button2);
+		return std::make_shared<EndMenu>(menu);
 	}
 	
 }

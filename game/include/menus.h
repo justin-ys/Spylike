@@ -33,7 +33,8 @@ class Menu : public SpritedObject {
 	std::string currentSelection = "";
 	void on_update();
 	void on_event(Event& e);
-	void on_init() override;
+	void on_init() final;
+	virtual void menu_init() {}
 	public:
 		Menu(int width, int height): width{width}, height{height} {}
 		virtual void draw(TextRenderManager& painter);
@@ -61,11 +62,19 @@ class StartMenu : public Menu {
 		void draw(TextRenderManager& painter) override;
 };
 
+class EndMenu : public Menu {
+	void menu_init() override;
+	public:
+		EndMenu(int width, int height): Menu(width, height) {}
+		void draw(TextRenderManager& painter) override;
+};
+
 namespace SpylikeMenus {
 	std::shared_ptr<Menu> testMenu();
 	std::shared_ptr<Menu> pauseMenu();
 	std::shared_ptr<Menu> gameOver();
 	std::shared_ptr<Menu> startMenu();
+	std::shared_ptr<Menu> endGame();
 }
 
 #endif

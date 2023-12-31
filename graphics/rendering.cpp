@@ -173,10 +173,12 @@ void TextRenderManager::drawString(Coordinate pos, std::string str, std::string 
 	for (const char& c : str) {
 		if (c == '\n') {
 			currentPos.y += 1;
-			currentPos.x = pos.x-1;
+			currentPos.x = pos.x;
 		}
-		draw(currentPos, c, layerName);
-		currentPos.x += 1;
+		else {
+			draw(currentPos, c, layerName);
+			currentPos.x += 1;
+		}
 	}
 }
 		

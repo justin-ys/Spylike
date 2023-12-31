@@ -116,6 +116,7 @@ void GameManager::StartupTask::update() {
 		Discord_UpdatePresence(&discordPresence);
 		Discord_RunCallbacks();
 		#endif
+		manager.audioManager->pauseMusic();
 		Animation anim = load_anim_from_file("game/resource/animation/splash.spa", 0, "UI");
 		manager.scheduler.addTask(std::make_unique<AnimationTask>(manager, anim));
 		startedAnimation = true;
@@ -184,21 +185,22 @@ void GameManager::loadLevel(Level level) {
 
 // Note: You must close any active menus, before showing a new one.
 void GameManager::showMenu(std::shared_ptr<Menu> menu, bool pause) {
+	if (scheduler.isRunning("MenuTask")) {
+		closeMenu();
+	}
 	scheduler.pauseElapsed();
 	audioManager->pauseMusic();
-	if (!scheduler.isRunning("MenuTask")) {
-		activeMenu = menu;
-		activeMenu->setID(1025);
-		activeMenu->init(eventManager);
-		menuEventManager->subscribe(activeMenu, "INPUT_KeyPress");
-		if (pause) {
-			scheduler.pauseTask("RunLevel");
-		}
-		camera->clearScreen();
-		camera->renderToScreen();
-		camera->lock();
-		scheduler.resumeTask("MenuTask");
+	activeMenu = menu;
+	activeMenu->setID(1025);
+	activeMenu->init(eventManager);
+	menuEventManager->subscribe(activeMenu, "INPUT_KeyPress");
+	if (pause) {
+		scheduler.pauseTask("RunLevel");
 	}
+	camera->clearScreen();
+	camera->renderToScreen();
+	camera->lock();
+	scheduler.resumeTask("MenuTask");
 }
 
 void GameManager::closeMenu() {
@@ -213,12 +215,16 @@ void GameManager::closeMenu() {
 
 void GameManager::on_event(Event& e) {
 	if (e.type == "MENU_Show") {
-		showMenu(SpylikeMenus::testMenu(), true);
+		SpylikeEvents::MenuEvent& me = dynamic_cast<SpylikeEvents::MenuEvent&>(e);
+		if (me.menuID == "endgame") {
+			showMenu(SpylikeMenus::endGame(), true);
+		}
 	}
 	if (e.type == "MENU_ButtonClick") {
 		SpylikeEvents::MenuButtonEvent& mb = dynamic_cast<SpylikeEvents::MenuButtonEvent&>(e);
 		if (mb.buttonID == "close") closeMenu();
 		if (mb.buttonID == "restart") {closeMenu(); playerHealth=100; keyCollected=false; loadLevel(load_from_file("game/resource/levels/1-1.spm"));}
+		if (mb.buttonID == "mainmenu") {audioManager->pauseMusic(); showMenu(SpylikeMenus::startMenu());}
 		if (mb.buttonID == "quit") quit();
 	}
 	if (e.type == "LEVEL_Change") {

@@ -23,8 +23,6 @@ class Player : public Character {
 	std::vector<SpriteFrame> hurtFrames{SpriteFrame{SpriteDelta(0, "")}, SpriteFrame{SpriteDelta(0, "@")}};
 	Sprite hurtSprite{hurtFrames, 1};
 	Coordinate attackLoc = Coordinate(0, 0);
-	int yVel = 0;
-	int xVel = 0;
 	void on_event(Event& e) override;
 	void on_update() override;
 	void on_init() override;
@@ -33,6 +31,8 @@ class Player : public Character {
 	Coordinate nextCamPos = Coordinate(-1, -1);
 	bool changePosFlag = false;
 	public:
+		int yVel = 0;
+		int xVel = 0;
 		void hurt(int damage) override;
 };
 
@@ -79,20 +79,30 @@ class SkeletonArrow : public TileEntity {
 };
 
 class Boss : public Character {
-	enum BossState { Alert, Attack1, Attack2 };
+	enum BossState { Alert, Attack1, Attack2, Death};
+	bool isHurt = false;
 	BossState state = BossState::Alert;
 	Timer alertTimer;
 	Timer fireTimer;
+	Timer hurtTimer;
 	std::vector<SpriteFrame> alertFrames{SpriteFrame{SpriteDelta(0, "")}, SpriteFrame{SpriteDelta(0, "!")}, SpriteFrame{SpriteDelta(0, "")}, SpriteFrame{SpriteDelta(0, "!")}, SpriteFrame{SpriteDelta(0, "")}, SpriteFrame{SpriteDelta(0, "")}};
 	Sprite alertSprite{alertFrames, 1};
-	void on_event(Event& e) override {}
 	void on_update() override;
 	void draw(Camera& painter) override;
 	void on_collide(std::shared_ptr<TileEntity> collider) override {}
 	void on_init() override;
+	bool phase2 = false;
 	public:
 		void hurt(int damage) override;
-                int health = 240;
+        int health = 240;
+};
+
+class BossSeg : public Character {
+	std::shared_ptr<Boss> boss;
+	public:
+		BossSeg(std::shared_ptr<Boss> boss) : boss{boss} {}
+		void hurt(int damage) override { boss->hurt(damage); }
+		void on_update() override;
 };
 	
 #endif
